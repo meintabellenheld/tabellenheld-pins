@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://meintabellenheld.github.io/tabellenheld-pins/sitemap.xml
