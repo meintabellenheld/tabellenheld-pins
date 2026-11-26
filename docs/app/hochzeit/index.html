@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unser Hochzeitsplaner</title>
+<meta name="description" content="Bonus-App zum Tabellenheld Hochzeitsplaner: Countdown, Budget, Gäste und Checkliste. Alle Daten bleiben auf eurem Gerät.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FAF7F2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hochzeit">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+@font-face { font-family: "Cormorant"; src: url(fonts/cormorant-sub.ttf) format("truetype"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(fonts/inter-400.ttf) format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(fonts/inter-600.ttf) format("truetype"); font-weight: 600; font-display: swap; }
+:root { --page: #FAF7F2; --card: #FFFFFF; --soft: #F4EEE5; --ink: #3B342C; --muted: #857B70; --line: #E9E0D2; --accent: #8A6B45; --accent-ink: #FFFFFF; --gold: #B8975A; --leaf: #8E9C85; --good: #5E7A57; --bad: #A9473B; --focus: #C9B490; --hint-bg: #F6EEDF; --hint-ink: #6E5530; --nav: rgba(255,255,255,.94); --shadow: 0 2px 12px rgba(59,52,44,.07); --cake: #FFFDF8; --icing: #FFFFFF; --plate: #E9E0D2; --ok-bg: #E4EBDD; --ok-ink: #3F5A38; --no-bg: #F1E4E1; --no-ink: #8A3C31; --warn-bg: #F6EAD3; --warn-ink: #7A5A1E; --display: "Cormorant", Georgia, "Times New Roman", serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --dw: 600; --dw2: 600; --h1: 30px; --h2: 23px; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #1C1916; --card: #26221E; --soft: #302B25; --ink: #F3ECE2; --muted: #B5A998; --line: #3E372F; --accent: #CDAE7E; --accent-ink: #1C1916; --gold: #D4B27A; --leaf: #A9B79F; --good: #9DBB92; --bad: #E08A7C; --focus: #C9B490; --hint-bg: #3A3124; --hint-ink: #EBD3A8; --nav: rgba(38,34,30,.95); --shadow: 0 2px 12px rgba(0,0,0,.35); --cake: #F6EFE3; --icing: #FFFFFF; --plate: #4A4238; --ok-bg: #33402F; --ok-ink: #CFE3C6; --no-bg: #45302C; --no-ink: #F0C2B9; --warn-bg: #47391F; --warn-ink: #F2D7A2; --display: "Cormorant", Georgia, "Times New Roman", serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --dw: 600; --dw2: 600; --h1: 30px; --h2: 23px; color-scheme: dark; } }
+:root[data-theme="dark"] { --page: #1C1916; --card: #26221E; --soft: #302B25; --ink: #F3ECE2; --muted: #B5A998; --line: #3E372F; --accent: #CDAE7E; --accent-ink: #1C1916; --gold: #D4B27A; --leaf: #A9B79F; --good: #9DBB92; --bad: #E08A7C; --focus: #C9B490; --hint-bg: #3A3124; --hint-ink: #EBD3A8; --nav: rgba(38,34,30,.95); --shadow: 0 2px 12px rgba(0,0,0,.35); --cake: #F6EFE3; --icing: #FFFFFF; --plate: #4A4238; --ok-bg: #33402F; --ok-ink: #CFE3C6; --no-bg: #45302C; --no-ink: #F0C2B9; --warn-bg: #47391F; --warn-ink: #F2D7A2; --display: "Cormorant", Georgia, "Times New Roman", serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --dw: 600; --dw2: 600; --h1: 30px; --h2: 23px; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; background: var(--page); color: var(--ink); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.45; min-height: 100vh; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 520px; margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(92px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; gap: 14px; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 2px 0; }
+h1 { font-family: var(--display); font-weight: var(--dw, 700); font-size: var(--h1, 24px); margin: 0; letter-spacing: .2px; line-height: 1.15; }
+h2 { font-family: var(--display); font-weight: var(--dw2, 600); font-size: var(--h2, 19px); margin: 0 0 10px; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.hint { background: var(--hint-bg); color: var(--hint-ink); border-radius: 14px; padding: 10px 12px; font-size: 13px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.hint button { border: 0; background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.view { display: none; gap: 14px; }
+.view.on { display: grid; animation: fade .25s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--soft); border-radius: 12px; padding: 10px; min-width: 0; }
+.stat b { display: block; font-family: var(--display); font-weight: var(--dw2, 600); font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; text-transform: uppercase; letter-spacing: .2px; color: var(--muted); font-weight: 600; }
+.pos b { color: var(--good); } .neg b { color: var(--bad); }
+.progress { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 8px; }
+.progress i { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--accent); transition: width .5s; }
+label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+input, select { font: inherit; font-size: 16px; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; min-width: 0; background: var(--soft); color: var(--ink); }
+select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.field { display: grid; gap: 4px; flex: 1 1 150px; min-width: 0; }
+.field.small { flex: 0 1 112px; }
+form.card { display: grid; gap: 10px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 13px; border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); }
+.btn { font-family: var(--display); font-weight: var(--dw2, 600); font-size: 16px; border: 0; border-radius: 14px; padding: 12px 16px; background: var(--accent); color: var(--accent-ink); cursor: pointer; width: 100%; }
+.btn.ghost { background: var(--soft); color: var(--ink); }
+.btn:active { transform: scale(.98); }
+.btns { display: grid; gap: 8px; }
+ul.list { list-style: none; margin: 0; padding: 0; }
+ul.list li { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--line); min-width: 0; }
+ul.list li:last-child { border-bottom: 0; }
+.what { flex: 1; min-width: 0; }
+.what span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.what small { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.del { border: 0; background: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 6px 8px; border-radius: 8px; flex: none; }
+.empty { color: var(--muted); font-size: 13px; text-align: center; margin: 6px 0; }
+.status { border: 0; border-radius: 999px; padding: 6px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; flex: none; min-width: 84px; }
+.s0 { background: var(--soft); color: var(--muted); }
+.s1 { background: var(--ok-bg); color: var(--ok-ink); }
+.s2 { background: var(--no-bg); color: var(--no-ink); }
+.s3 { background: var(--warn-bg); color: var(--warn-ink); }
+.links { display: grid; gap: 2px; }
+.links a { color: var(--ink); text-decoration: none; padding: 11px 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 15px; }
+.links a:last-child { border-bottom: 0; }
+.steps { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+.confirm { display: none; gap: 8px; margin-top: 8px; }
+.confirm.on { display: grid; }
+.foot { text-align: center; color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--nav); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); z-index: 5; }
+nav.tabs .in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+nav.tabs button { border: 0; background: none; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; color: var(--muted); font-size: 11px; font-weight: 600; }
+nav.tabs svg { width: 24px; height: 24px; }
+nav.tabs button[aria-selected="true"] { color: var(--accent); background: var(--soft); }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 9; max-width: calc(100% - 32px); text-align: center; }
+.toast.on { opacity: 1; transform: translateX(-50%); }
+canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
+@media (prefers-reduced-motion: reduce) { .view.on { animation: none; } .progress i { transition: none; } }
+
+.eyebrow { font-family: var(--display); font-style: italic; font-size: 19px; color: var(--accent); margin: 0; }
+.hero { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 18px 16px 14px; background: linear-gradient(180deg, var(--card), var(--soft)); }
+.count b { display: block; font-family: var(--display); font-weight: 600; font-size: 64px; line-height: .95; color: var(--accent); font-variant-numeric: lining-nums tabular-nums; }
+.count span { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+#cake { width: 100%; max-width: 300px; height: auto; display: block; margin: 4px auto 0; overflow: visible; }
+.cakeTxt { margin: 0; font-size: 13.5px; color: var(--muted); }
+.cakeTxt b { color: var(--ink); }
+.next { display: grid; gap: 2px; text-align: left; border: 0; cursor: pointer; width: 100%; }
+.next .lbl { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.next .t { font-family: var(--display); font-weight: 600; font-size: 21px; line-height: 1.15; }
+.next .d { font-size: 13px; color: var(--muted); }
+.ringBox { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: center; }
+.ringBox svg { width: 132px; height: 132px; display: block; }
+.ringBox .big { font-family: var(--display); font-weight: 600; font-size: 34px; line-height: 1; }
+.ringBox p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.cats { display: grid; gap: 9px; margin-top: 4px; }
+.cat { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13.5px; }
+.cat .catName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat .track { height: 9px; background: var(--soft); border-radius: 999px; overflow: hidden; }
+.cat .track i { display: block; height: 100%; border-radius: 999px; background: var(--gold); transition: width .5s; }
+.cat b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.tbl { width: 58px; flex: none; padding: 7px 6px; text-align: center; font-size: 15px; border-radius: 10px; }
+.grp { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 14px 0 2px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.grp:first-child { margin-top: 0; }
+.grp small { font-family: var(--body); font-size: 12px; color: var(--muted); font-weight: 600; }
+.task { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; background: none; padding: 9px 2px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 15px; }
+.task .box { width: 24px; height: 24px; border-radius: 50%; border: 1.8px solid var(--line); flex: none; display: grid; place-items: center; color: transparent; font-size: 14px; font-weight: 700; transition: .2s; }
+.task[aria-checked="true"] .box { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.task[aria-checked="true"] .tt { color: var(--muted); text-decoration: line-through; }
+.task .tt { flex: 1; min-width: 0; }
+.task .due { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.task.late .due { color: var(--bad); font-weight: 600; }
+.stat b { font-family: var(--body); font-size: 17px; }
+.btn { font-family: var(--body); font-size: 15.5px; }
+.ringBox .big, .count b { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1; }
+.tblw { display: grid; justify-items: center; gap: 1px; font-size: 9.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; flex: none; }
+.leafline { display: block; margin: 0 auto; width: 120px; height: 16px; color: var(--leaf); }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="view on" id="v-start" aria-label="Start">
+    <header class="top"><div><p class="eyebrow" id="hNames">Unser Tag</p><h1 id="hDate">Datum eintragen</h1></div></header>
+    <div class="hint" data-ex hidden><span>Das sind Beispiele zum Ausprobieren.</span><button type="button" data-clear-example>Beispiele löschen</button></div>
+    <div class="card hero">
+      <div class="count"><b id="cDays">–</b><span id="cLbl">Tage bis zum Ja</span></div>
+      <svg id="cake" viewBox="0 0 260 230" role="img" aria-label="Hochzeitstorte, wächst mit der Checkliste"></svg>
+      <p class="cakeTxt" id="cakeTxt"></p>
+    </div>
+    <div class="stats">
+      <div class="stat" id="stFree"><span>Budget frei</span><b>–</b></div>
+      <div class="stat"><span>Zusagen</span><b id="stYes">–</b></div>
+      <div class="stat"><span>Noch offen</span><b id="stOpen">–</b></div>
+    </div>
+    <button class="card next" type="button" data-go="liste"><span class="lbl">Als Nächstes</span><span class="t" id="nxT">–</span><span class="d" id="nxD"></span></button>
+    <div class="card">
+      <h2>Unser Tag</h2>
+      <div class="row">
+        <div class="field"><label for="iDate">Hochzeitsdatum</label><input type="date" id="iDate"></div>
+        <div class="field"><label for="iNames">Wir sind</label><input id="iNames" maxlength="40" placeholder="z. B. Anna &amp; Ben" autocomplete="off"></div>
+      </div>
+    </div>
+    <svg class="leafline" viewBox="0 0 120 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 8h112"/><ellipse cx="40" cy="5" rx="5" ry="3"/><ellipse cx="52" cy="11" rx="5" ry="3"/><ellipse cx="68" cy="5" rx="5" ry="3"/><ellipse cx="80" cy="11" rx="5" ry="3"/><circle cx="60" cy="8" r="2.2" fill="currentColor"/></svg>
+  </section>
+
+  <section class="view" id="v-budget" aria-label="Budget">
+    <header class="top"><div><h1>Budget</h1><p class="sub">Was darf der Tag kosten, was ist gebucht, was bezahlt?</p></div></header>
+    <div class="card">
+      <div class="ringBox">
+        <svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="54" fill="none" stroke-width="14" style="stroke:var(--soft)"/><circle id="ring" cx="66" cy="66" r="54" fill="none" stroke-width="14" stroke-linecap="round" transform="rotate(-90 66 66)" style="stroke:var(--gold);transition:stroke-dasharray .6s"/><text id="ringPct" x="66" y="74" text-anchor="middle" style="font-family:var(--display);font-weight:600;font-size:28px;fill:var(--ink)">0 %</text></svg>
+        <div><span class="lbl" style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Noch frei</span><div class="big" id="bFree">–</div><p id="bInfo"></p></div>
+      </div>
+      <div class="field" style="margin-top:12px"><label for="iBudget">Unser Gesamtbudget</label><input id="iBudget" inputmode="decimal" placeholder="z. B. 18.000"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Gebucht</span><b id="bBooked">–</b></div>
+      <div class="stat pos"><span>Bezahlt</span><b id="bPaid">–</b></div>
+      <div class="stat"><span>Noch zahlen</span><b id="bDue">–</b></div>
+    </div>
+    <form class="card" id="costForm" autocomplete="off">
+      <h2>Kosten eintragen</h2>
+      <div class="row">
+        <div class="field"><label for="cWhat">Was</label><input id="cWhat" maxlength="50" placeholder="z. B. Fotograf"></div>
+        <div class="field small"><label for="cAmt">Preis</label><input id="cAmt" inputmode="decimal" placeholder="0,00"></div>
+      </div>
+      <div class="field"><label for="cCat">Bereich</label><select id="cCat"></select></div>
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+    <div class="card"><h2>Wofür geht es drauf?</h2><div class="cats" id="catBars"></div><p class="empty" id="catEmpty" hidden>Noch keine Kosten eingetragen.</p></div>
+    <div class="card"><h2>Alle Kosten</h2><ul class="list" id="costList"></ul><p class="empty" id="costEmpty" hidden>Noch leer.</p>
+      <p class="empty" style="text-align:left;margin-top:8px">Tippe auf den Status: offen → angezahlt → bezahlt.</p></div>
+  </section>
+
+  <section class="view" id="v-gaeste" aria-label="Gäste">
+    <header class="top"><div><h1>Gäste</h1><p class="sub">Wer kommt, wie viele, an welchen Tisch?</p></div></header>
+    <div class="stats">
+      <div class="stat"><span>Eingeladen</span><b id="gAll">–</b></div>
+      <div class="stat pos"><span>Zusagen</span><b id="gYes">–</b></div>
+      <div class="stat"><span>Noch offen</span><b id="gOpen">–</b></div>
+    </div>
+    <form class="card" id="guestForm" autocomplete="off">
+      <h2>Einladung eintragen</h2>
+      <div class="row">
+        <div class="field"><label for="gName">Name</label><input id="gName" maxlength="50" placeholder="z. B. Familie Meyer"></div>
+        <div class="field small"><label for="gPers">Personen</label><input id="gPers" inputmode="numeric" placeholder="1"></div>
+      </div>
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+    <div class="card">
+      <div class="chips" id="gFilter" role="group" aria-label="Filter"></div>
+      <ul class="list" id="guestList" style="margin-top:8px"></ul><p class="empty" id="guestEmpty" hidden>Niemand in dieser Liste.</p>
+      <p class="empty" style="text-align:left;margin-top:8px">Status antippen: offen → zugesagt → abgesagt. Rechts die Tischnummer.</p>
+    </div>
+    <div class="card"><h2>Tische</h2><div class="cats" id="tables"></div><p class="empty" id="tableEmpty">Tragt bei den Gästen eine Tischnummer ein, dann seht ihr hier die Belegung.</p></div>
+  </section>
+
+  <section class="view" id="v-liste" aria-label="Checkliste">
+    <header class="top"><div><h1>Checkliste</h1><p class="sub" id="lSub">Fristen rechnen sich aus eurem Datum.</p></div></header>
+    <div class="card"><div style="display:flex;justify-content:space-between;font-size:14px"><span id="lDone">0 von 0 erledigt</span><b id="lPct">0 %</b></div><div class="progress"><i id="lBar"></i></div></div>
+    <div class="card" id="taskBox"></div>
+    <form class="card" id="taskForm" autocomplete="off">
+      <h2>Eigene Aufgabe</h2>
+      <div class="row">
+        <div class="field"><label for="tText">Aufgabe</label><input id="tText" maxlength="60" placeholder="z. B. Brautstrauß abholen"></div>
+        <div class="field small" style="flex-basis:150px"><label for="tDate">Bis</label><input type="date" id="tDate"></div>
+      </div>
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+  </section>
+
+
+  <section class="view" id="v-mehr" aria-label="Mehr">
+    <header class="top"><div><h1>Mehr</h1><p class="sub">Einrichten, sichern, Hilfe.</p></div></header>
+    
+    <div class="card">
+      <h2>Als App auf den Startbildschirm</h2>
+      <button class="btn" type="button" id="installBtn" hidden>Jetzt installieren</button>
+      <p style="margin:0;font-size:14px"><b>iPhone (Safari):</b></p>
+      <ol class="steps"><li>Unten auf das Teilen-Symbol tippen (Quadrat mit Pfeil).</li><li>„Zum Home-Bildschirm“ wählen.</li><li>„Hinzufügen“ tippen. Fertig.</li></ol>
+      <p style="margin:10px 0 0;font-size:14px"><b>Android (Chrome):</b></p>
+      <ol class="steps"><li>Oben rechts auf die drei Punkte tippen.</li><li>„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.</li></ol>
+      <p class="empty" style="text-align:left;margin-top:10px">Tipp: Auf dem Startbildschirm bleiben deine Einträge am zuverlässigsten gespeichert, und die App läuft auch ohne Internet.</p>
+    </div>
+    <div class="card">
+      <h2>Deine Daten</h2>
+      <p style="margin:0 0 10px;font-size:14px">Alles, was du einträgst, bleibt nur in diesem Browser auf deinem Gerät. Es wird nichts an uns oder andere gesendet. Löschst du die Browserdaten, sind auch die Einträge weg. Mit einer Sicherung kannst du sie auf ein anderes Gerät mitnehmen.</p>
+      <div class="btns">
+        <button class="btn ghost" type="button" id="exportBtn">Sicherung herunterladen</button>
+        <button class="btn ghost" type="button" id="importBtn">Sicherung laden</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button class="btn ghost" type="button" id="resetBtn">Alles löschen</button>
+        <div class="confirm" id="resetConfirm"><p style="margin:0;font-size:14px">Wirklich alle Einträge löschen? Das lässt sich nicht rückgängig machen.</p><button class="btn" type="button" id="resetYes">Ja, alles löschen</button><button class="btn ghost" type="button" id="resetNo">Abbrechen</button></div>
+      </div>
+    </div>
+    <div class="card links">
+      <a href="../../index.html#impressum">Impressum <span aria-hidden="true">›</span></a>
+      <a href="../../index.html#datenschutz">Datenschutz <span aria-hidden="true">›</span></a>
+      <a href="../../index.html">Tabellenheld Vorlagen <span aria-hidden="true">›</span></a>
+    </div>
+    <p class="foot">Bonus zum Tabellenheld Hochzeitsplaner. Planungshilfe für den privaten Gebrauch.</p>
+  </section>
+
+</div>
+<nav class="tabs" aria-label="Bereiche"><div class="in" role="tablist">
+  <button type="button" role="tab" data-tab="start" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="14" width="16" height="6.5" rx="1.5"/><rect x="6.5" y="9" width="11" height="5" rx="1.2"/><rect x="9" y="5" width="6" height="4" rx="1"/><path d="M12 2.2v2.8"/></svg>Start</button>
+  <button type="button" role="tab" data-tab="budget" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M15 8.6a4 4 0 1 0 0 6.8M7.5 11h6M7.5 13.4h6"/></svg>Budget</button>
+  <button type="button" role="tab" data-tab="gaeste" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.4 2.8-5.2 5.5-5.2s4.9 1.8 5.5 5.2"/><circle cx="17" cy="9.5" r="2.5"/><path d="M15.8 14.4c2.2-.2 4.1 1.3 4.7 4.6"/></svg>Gäste</button>
+  <button type="button" role="tab" data-tab="liste" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M3.5 6.5l1.3 1.3 2.2-2.6M3.5 12l1.3 1.3 2.2-2.6"/><circle cx="5" cy="17.5" r="1.3"/></svg>Checkliste</button>
+  <button type="button" role="tab" data-tab="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mehr</button>
+</div></nav>
+<div class="toast" id="toast" role="status"></div>
+<canvas id="confetti" hidden></canvas>
+<script>
+
+(function () {
+  "use strict";
+  var KEY = "tabellenheld-hochzeit-v1", APP = "hochzeit";
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function eur(v, dec) { v = Math.round((+v || 0) * 100) / 100; var neg = v < 0; v = Math.abs(v);
+    var s = (dec === 0 ? Math.round(v) : v).toLocaleString("de-DE", { minimumFractionDigits: dec === 0 || v % 1 === 0 ? 0 : 2, maximumFractionDigits: dec === 0 ? 0 : 2 });
+    return (neg ? "−" : "") + s + " €"; }
+  function num(s) { s = String(s || "").trim().replace(/\s|€/g, ""); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); var n = parseFloat(s); return isFinite(n) ? n : NaN; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function isoOf(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function parseIso(s) { var p = String(s || "").split("-"); return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null; }
+  function todayD() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function fmt(d, opt) { return d ? d.toLocaleDateString("de-DE", opt || { day: "2-digit", month: "2-digit", year: "numeric" }) : ""; }
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var state;
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function touch() { save(); render(); }
+  var toastT;
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("on"); }, 2200); }
+  var tabs = Array.prototype.slice.call(document.querySelectorAll("nav.tabs button"));
+  var onShow = {};
+  function go(name, push) {
+    document.querySelectorAll(".view").forEach(function (v) { v.classList.toggle("on", v.id === "v-" + name); });
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false"); });
+    if (push !== false) { try { history.replaceState(null, "", "#" + name); } catch (e) {} }
+    window.scrollTo(0, 0); if (onShow[name]) onShow[name]();
+  }
+  function confetti(cols) {
+    if (reduce) return; var cv = $("confetti"), ctx = cv.getContext("2d"); cv.hidden = false;
+    var W = cv.width = innerWidth, H = cv.height = innerHeight, ps = []; cols = cols || ["#B8975A", "#ffffff", "#8E9C85", "#E6DCCB"];
+    for (var i = 0; i < 140; i++) ps.push({ x: W / 2 + (Math.random() - .5) * 80, y: H * .45, vx: (Math.random() - .5) * 11, vy: -Math.random() * 12 - 4, r: Math.random() * 6.28, vr: (Math.random() - .5) * .3, c: cols[i % cols.length], w: 6 + Math.random() * 5 });
+    var t0 = performance.now();
+    (function f(now) { ctx.clearRect(0, 0, W, H); var done = now - t0 > 2600;
+      ps.forEach(function (p) { p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -2, p.w, 4); ctx.restore(); });
+      if (!done) requestAnimationFrame(f); else { ctx.clearRect(0, 0, W, H); cv.hidden = true; } })(t0);
+  }
+
+
+  var CATS = ["Location und Miete", "Essen und Getränke", "Fotografie und Video", "Outfits und Styling", "Ringe", "Musik und DJ",
+              "Blumen und Deko", "Torte", "Papeterie und Einladungen", "Standesamt und Trauung", "Flitterwochen", "Sonstiges"];
+  var GROUPS = [[12, "12 Monate vorher", ["Budget festlegen", "Gästeliste grob erstellen", "Wunschdatum und Plan B festlegen", "Location besichtigen und buchen", "Standesamt: Termin und Unterlagen klären"]], [9, "9 Monate vorher", ["Fotograf und Video buchen", "Musik oder DJ buchen", "Trauzeugen fragen", "Save-the-Date verschicken", "Catering auswählen"]], [6, "6 Monate vorher", ["Outfits aussuchen und bestellen", "Ringe aussuchen", "Hotelzimmer für Gäste reservieren", "Flitterwochen buchen", "Floristik anfragen"]], [4, "4 Monate vorher", ["Einladungen verschicken", "Torte probieren und bestellen", "Tagesablauf grob planen", "Deko planen"]], [2, "2 Monate vorher", ["Zusagen nachfassen", "Menü und Getränke festlegen", "Friseur und Make-up Probetermin", "Eheversprechen oder Reden vorbereiten"]], [1, "1 Monat vorher", ["Sitzplan erstellen", "Endgültige Gästezahl an Location melden", "Restzahlungen planen", "Ringe abholen"]], [0.25, "1 Woche vorher", ["Ablauf an alle Dienstleister schicken", "Notfall-Täschchen packen", "Bargeld für Trinkgelder bereitlegen"]], [-1, "Am Tag danach", ["Dankeskarten-Liste anlegen", "Geliehenes zurückgeben"]]], TASKS = [];
+  GROUPS.forEach(function (g, gi) { g[2].forEach(function (t) { TASKS.push({ id: TASKS.length, t: t, m: g[0], g: gi }); }); });
+  var EX_DATE = "2027-08-21", EX_NAMES = "Anna & Ben";
+  function blank() { return { v: 1, app: APP, example: false, date: "", names: "", budget: 0, costs: [], guests: [], done: [], own: [] }; }
+  function example() {
+    var s = blank(); s.example = true; s.date = EX_DATE; s.names = EX_NAMES; s.budget = 18000;
+    s.costs = [{ t: "Gut Lindenhof", c: 0, a: 3200, s: 1 }, { t: "Studio Lichtblick", c: 2, a: 1900, s: 1 }, { t: "Kleid und Anzug", c: 3, a: 1450, s: 2 },
+               { t: "Eheringe", c: 4, a: 1380, s: 2 }, { t: "Einladungskarten", c: 8, a: 180, s: 2 }, { t: "Standesamt", c: 9, a: 120, s: 2 }];
+    s.guests = [{ n: "Familie Meyer", p: 4, s: 1, t: 1 }, { n: "Oma Ilse", p: 1, s: 1, t: 1 }, { n: "Jonas und Lea", p: 2, s: 1, t: 3 }, { n: "Familie Schulz", p: 3, s: 0, t: 2 },
+                { n: "Trauzeugin Mia", p: 2, s: 1, t: 1 }, { n: "Familie Wagner", p: 4, s: 1, t: 2 }, { n: "Tante Gabi", p: 1, s: 2, t: 0 }, { n: "Nachbarn Krüger", p: 2, s: 0, t: 0 }];
+    s.done = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; return s;
+  }
+  function fix(s) { var b = blank(); for (var k in b) if (!(k in s)) s[k] = b[k]; ["costs", "guests", "done", "own"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); return s; }
+  function clearExample(s) { var b = blank(); if (s.date !== EX_DATE) b.date = s.date; if (s.names !== EX_NAMES) b.names = s.names; return b; }
+
+  function wd() { return parseIso(state.date); }
+  function dueOf(task) { var d = wd(); if (!d) return null; if (task.m < 0) return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() - Math.round(task.m * 30.4)); }
+  function allTasks() { return TASKS.map(function (t) { return { key: "s" + t.id, t: t.t, due: dueOf(t), g: t.g, done: state.done.indexOf(t.id) >= 0, id: t.id }; })
+    .concat(state.own.map(function (o, i) { return { key: "o" + i, t: o.t, due: parseIso(o.d), g: -1, done: !!o.x, own: i }; })); }
+  function totals() {
+    var booked = 0, paid = 0; state.costs.forEach(function (c) { booked += +c.a || 0; if (c.s === 2) paid += +c.a || 0; else if (c.s === 1) paid += Math.round((+c.a || 0) * 0.3); });
+    var inv = 0, yes = 0, open = 0; state.guests.forEach(function (g) { var p = +g.p || 1; inv += p; if (g.s === 1) yes += p; else if (g.s === 0) open += p; });
+    var ts = allTasks(), done = ts.filter(function (x) { return x.done; }).length;
+    return { booked: booked, paid: paid, free: (+state.budget || 0) - booked, inv: inv, yes: yes, open: open, tasks: ts, done: done, n: ts.length };
+  }
+
+  /* ---------- Torte ---------- */
+  var cakeShown = 0, cakeTarget = 0, cakeDoneShown = false;
+  function cake(p) {
+    var s = $("cake"); while (s.firstChild) s.removeChild(s.firstChild);
+    function st(fill, stroke, extra) { return "fill:" + fill + ";stroke:" + stroke + ";" + (extra || ""); }
+    el("ellipse", { cx: 130, cy: 212, rx: 112, ry: 11, style: st("var(--plate)", "none") }, s);
+    el("ellipse", { cx: 130, cy: 207, rx: 104, ry: 9, style: st("var(--card)", "var(--line)", "stroke-width:1.5") }, s);
+    var tiers = [{ w: 176, h: 56, y: 150 }, { w: 132, h: 48, y: 102 }, { w: 90, h: 42, y: 60 }];
+    tiers.forEach(function (T, i) {
+      var f = Math.max(0, Math.min(1, p * 3 - i)), x = 130 - T.w / 2;
+      el("rect", { x: x, y: T.y, width: T.w, height: T.h, rx: 9, style: st("none", "var(--line)", "stroke-width:1.6;stroke-dasharray:5 5") }, s);
+      if (f <= 0) return;
+      var fh = T.h * f;
+      el("rect", { x: x, y: T.y + T.h - fh, width: T.w, height: fh, rx: f > .2 ? 9 : 3, style: st("var(--cake)", "var(--gold)", "stroke-width:1.4") }, s);
+      if (f > .35) el("rect", { x: x + 1, y: T.y + T.h - 10, width: T.w - 2, height: 4, style: st("var(--gold)", "none", "opacity:.85") }, s);
+      if (f >= 1) {
+        var d = "M" + x + " " + (T.y + 2), n = Math.round(T.w / 18), w = T.w / n;
+        for (var k = 0; k < n; k++) { var dx = x + k * w, deep = 8 + ((k * 7 + i * 3) % 3) * 3;
+          d += " L" + (dx + w * .15) + " " + (T.y + 2) + " Q" + (dx + w * .5) + " " + (T.y + deep + 6) + " " + (dx + w * .85) + " " + (T.y + 2); }
+        d += " L" + (x + T.w) + " " + (T.y + 2) + " L" + (x + T.w) + " " + (T.y - 1) + " Q" + (x + T.w) + " " + (T.y - 3) + " " + (x + T.w - 6) + " " + (T.y - 3) + " L" + (x + 6) + " " + (T.y - 3) + " Q" + x + " " + (T.y - 3) + " " + x + " " + (T.y - 1) + " Z";
+        el("path", { d: d, style: st("var(--icing)", "var(--line)", "stroke-width:1") }, s);
+        [[x + 14, T.y + T.h - 22], [x + T.w - 16, T.y + T.h - 24]].forEach(function (q, j) {
+          el("ellipse", { cx: q[0], cy: q[1], rx: 6, ry: 4, transform: "rotate(" + (j ? 30 : -30) + " " + q[0] + " " + q[1] + ")", style: st("var(--leaf)", "none", "opacity:.75") }, s);
+          el("ellipse", { cx: q[0] + (j ? -7 : 7), cy: q[1] + 6, rx: 5, ry: 3.4, transform: "rotate(" + (j ? -20 : 20) + " " + q[0] + " " + q[1] + ")", style: st("var(--leaf)", "none", "opacity:.55") }, s);
+          el("circle", { cx: q[0] + (j ? -2 : 2), cy: q[1] + 2, r: 2.6, style: st("var(--gold)", "none") }, s);
+        });
+      }
+    });
+    if (p >= .999) {
+      [[118, 33], [142, 33]].forEach(function (c) { el("circle", { cx: c[0], cy: c[1], r: 13, style: st("none", "var(--gold)", "stroke-width:4") }, s); });
+      el("path", { d: "M130 2 l3 7 7 1 -5 5 1 7 -6 -3 -6 3 1 -7 -5 -5 7 -1 z", style: st("var(--gold)", "none", "opacity:.9") }, s);
+    } else {
+      el("text", { x: 130, y: 46, "text-anchor": "middle", style: "font-family:var(--display);font-style:italic;font-size:15px;fill:var(--muted)" }, s).textContent = p > 0 ? "wächst mit jeder Aufgabe" : "Hakt die erste Aufgabe ab";
+    }
+  }
+  function cakeLoop() { if (Math.abs(cakeTarget - cakeShown) > .001) { cakeShown += (cakeTarget - cakeShown) * (reduce ? 1 : .1); cake(cakeShown); requestAnimationFrame(cakeLoop); } else { cakeShown = cakeTarget; cake(cakeShown); } }
+
+  /* ---------- Darstellung ---------- */
+  var gFilter = "alle";
+  function render() {
+    var T = totals(), d = wd(), t0 = todayD();
+    $("hNames").textContent = state.names || "Unser Tag";
+    $("hDate").textContent = d ? fmt(d, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "Datum eintragen";
+    if ($("iDate") !== document.activeElement) $("iDate").value = state.date || "";
+    if ($("iNames") !== document.activeElement) $("iNames").value = state.names || "";
+    if (d) { var days = Math.round((d - t0) / 864e5); $("cDays").textContent = days > 0 ? days.toLocaleString("de-DE") : (days === 0 ? "Heute!" : "♥");
+      $("cLbl").textContent = days > 0 ? (days === 1 ? "Tag bis zum Ja" : "Tage bis zum Ja") : (days === 0 ? "Euer großer Tag" : "Verheiratet seit " + (-days) + " Tagen"); }
+    else { $("cDays").textContent = "–"; $("cLbl").textContent = "Datum unten eintragen"; }
+    var p = T.n ? T.done / T.n : 0; cakeTarget = p; cakeLoop();
+    $("cakeTxt").innerHTML = ""; var ct = $("cakeTxt");
+    if (p >= 1) { ct.appendChild(h("b", null, "Alles erledigt. ")); ct.appendChild(document.createTextNode("Die Torte steht, jetzt nur noch genießen!")); if (!cakeDoneShown && !state.example) { cakeDoneShown = true; confetti(); } }
+    else { ct.appendChild(document.createTextNode("Eure Torte wächst mit jeder erledigten Aufgabe: ")); ct.appendChild(h("b", null, T.done + " von " + T.n)); }
+    var fr = $("stFree"); fr.className = "stat " + (T.free < 0 ? "neg" : "pos"); fr.querySelector("b").textContent = state.budget ? eur(T.free, 0) : "–";
+    $("stYes").textContent = T.yes + " Pers."; $("stOpen").textContent = T.open + " Pers.";
+    var nx = T.tasks.filter(function (x) { return !x.done; }).sort(function (a, b) { return (a.due ? a.due : 9e15) - (b.due ? b.due : 9e15); })[0];
+    $("nxT").textContent = nx ? nx.t : "Alles erledigt!"; $("nxD").textContent = nx && nx.due ? (nx.due < t0 ? "Überfällig seit " : "Bis ") + fmt(nx.due) : "";
+    renderBudget(T); renderGuests(T); renderTasks(T);
+  }
+  function renderBudget(T) {
+    var B = +state.budget || 0, pct = B ? Math.min(T.booked / B, 1) : 0, C = 2 * Math.PI * 54;
+    $("ring").setAttribute("stroke-dasharray", (pct * C) + " " + C); $("ring").style.stroke = B && T.booked > B ? "var(--bad)" : "var(--gold)";
+    $("ringPct").textContent = B ? Math.round(T.booked / B * 100) + " %" : "–";
+    $("bFree").textContent = B ? eur(T.free, 0) : "–"; $("bFree").style.color = T.free < 0 ? "var(--bad)" : "";
+    $("bInfo").textContent = !B ? "Tragt unten euer Gesamtbudget ein." : (T.free < 0 ? "Achtung: mehr gebucht als geplant." : (T.free < B * .05 ? "Fast verplant, Puffer im Blick behalten." : "Gut im Rahmen. Von " + eur(B, 0) + " sind " + Math.round(pct * 100) + " % gebucht."));
+    if ($("iBudget") !== document.activeElement) $("iBudget").value = B ? B.toLocaleString("de-DE") : "";
+    $("bBooked").textContent = eur(T.booked, 0); $("bPaid").textContent = eur(T.paid, 0); $("bDue").textContent = eur(T.booked - T.paid, 0);
+    var sums = CATS.map(function () { return 0; }); state.costs.forEach(function (c) { sums[c.c in sums ? c.c : 11] += +c.a || 0; });
+    var mx = Math.max.apply(null, sums.concat([1])), cb = $("catBars"); cb.innerHTML = "";
+    CATS.map(function (n, i) { return [n, sums[i]]; }).filter(function (x) { return x[1] > 0; }).sort(function (a, b) { return b[1] - a[1]; }).forEach(function (x) {
+      var r = h("div", "cat"); r.appendChild(h("span", "catName", x[0])); var tr = h("span", "track"), bar = h("i"); bar.style.width = (x[1] / mx * 100) + "%"; tr.appendChild(bar); r.appendChild(tr); r.appendChild(h("b", null, eur(x[1], 0))); cb.appendChild(r); });
+    $("catEmpty").hidden = state.costs.length > 0;
+    var ul = $("costList"); ul.innerHTML = ""; $("costEmpty").hidden = state.costs.length > 0;
+    state.costs.forEach(function (c, i) {
+      var li = h("li"), w = h("div", "what"); w.appendChild(h("span", null, c.t)); w.appendChild(h("small", null, CATS[c.c] || "Sonstiges")); li.appendChild(w);
+      li.appendChild(h("span", "amt", eur(c.a)));
+      var b = h("button", "status " + ["s0", "s3", "s1"][c.s || 0], ["offen", "angezahlt", "bezahlt"][c.s || 0]); b.type = "button";
+      b.setAttribute("aria-label", "Status von " + c.t + ": " + b.textContent + ". Tippen zum Ändern.");
+      b.addEventListener("click", function () { c.s = ((c.s || 0) + 1) % 3; touch(); if (c.s === 2) toast(c.t + " bezahlt ✓"); }); li.appendChild(b);
+      var x = h("button", "del", "✕"); x.type = "button"; x.setAttribute("aria-label", c.t + " löschen"); x.addEventListener("click", function () { state.costs.splice(i, 1); touch(); }); li.appendChild(x);
+      ul.appendChild(li); });
+  }
+  function renderGuests(T) {
+    $("gAll").textContent = T.inv; $("gYes").textContent = T.yes; $("gOpen").textContent = T.open;
+    var fb = $("gFilter"); fb.innerHTML = "";
+    [["alle", "Alle"], ["0", "Offen"], ["1", "Zugesagt"], ["2", "Abgesagt"]].forEach(function (f) { var c = h("button", "chip", f[1]); c.type = "button"; c.setAttribute("aria-pressed", gFilter === f[0] ? "true" : "false");
+      c.addEventListener("click", function () { gFilter = f[0]; render(); }); fb.appendChild(c); });
+    var ul = $("guestList"); ul.innerHTML = ""; var shown = 0;
+    state.guests.forEach(function (g, i) {
+      if (gFilter !== "alle" && String(g.s) !== gFilter) return; shown++;
+      var li = h("li"), w = h("div", "what"); w.appendChild(h("span", null, g.n)); w.appendChild(h("small", null, (g.p || 1) + (g.p > 1 ? " Personen" : " Person"))); li.appendChild(w);
+      var b = h("button", "status " + ["s0", "s1", "s2"][g.s || 0], ["offen", "zugesagt", "abgesagt"][g.s || 0]); b.type = "button";
+      b.setAttribute("aria-label", "Antwort von " + g.n + ": " + b.textContent + ". Tippen zum Ändern.");
+      b.addEventListener("click", function () { g.s = ((g.s || 0) + 1) % 3; touch(); }); li.appendChild(b);
+      var tw = h("label", "tblw"), t = h("input", "tbl"); tw.appendChild(document.createTextNode("Tisch")); t.inputMode = "numeric"; t.placeholder = "–"; t.value = g.t ? g.t : ""; t.setAttribute("aria-label", "Tisch für " + g.n);
+      t.addEventListener("change", function () { var n = parseInt(t.value, 10); g.t = n > 0 && n < 100 ? n : 0; touch(); }); tw.appendChild(t); li.appendChild(tw);
+      var x = h("button", "del", "✕"); x.type = "button"; x.setAttribute("aria-label", g.n + " löschen"); x.addEventListener("click", function () { state.guests.splice(i, 1); touch(); }); li.appendChild(x);
+      ul.appendChild(li); });
+    $("guestEmpty").hidden = shown > 0;
+    var tb = {}; state.guests.forEach(function (g) { if (g.t && g.s !== 2) tb[g.t] = (tb[g.t] || 0) + (+g.p || 1); });
+    var keys = Object.keys(tb).map(Number).sort(function (a, b) { return a - b; }), box = $("tables"); box.innerHTML = ""; $("tableEmpty").hidden = keys.length > 0;
+    var mx = Math.max.apply(null, keys.map(function (k) { return tb[k]; }).concat([10]));
+    keys.forEach(function (k) { var r = h("div", "cat"); r.appendChild(h("span", "catName", "Tisch " + k)); var tr = h("span", "track"), bar = h("i"); bar.style.width = (tb[k] / mx * 100) + "%"; tr.appendChild(bar); r.appendChild(tr);
+      r.appendChild(h("b", null, tb[k] + " Pers.")); box.appendChild(r); });
+  }
+  function renderTasks(T) {
+    var t0 = todayD(), pct = T.n ? Math.round(T.done / T.n * 100) : 0;
+    $("lDone").textContent = T.done + " von " + T.n + " erledigt"; $("lPct").textContent = pct + " %"; $("lBar").style.width = pct + "%";
+    $("lSub").textContent = wd() ? "Fristen gerechnet ab " + fmt(wd()) + "." : "Tragt auf Start euer Datum ein, dann rechnen sich die Fristen.";
+    var box = $("taskBox"); box.innerHTML = "";
+    var groups = GROUPS.map(function (g, gi) { return { lab: g[1], items: T.tasks.filter(function (x) { return x.g === gi; }) }; });
+    var own = T.tasks.filter(function (x) { return x.g === -1; }); if (own.length) groups.push({ lab: "Eigene Aufgaben", items: own });
+    groups.forEach(function (G) {
+      var hd = h("div", "grp"); hd.appendChild(h("span", null, G.lab)); var dn = G.items.filter(function (x) { return x.done; }).length; hd.appendChild(h("small", null, dn + "/" + G.items.length)); box.appendChild(hd);
+      G.items.forEach(function (x) {
+        var b = h("button", "task" + (!x.done && x.due && x.due < t0 ? " late" : "")); b.type = "button"; b.setAttribute("role", "checkbox"); b.setAttribute("aria-checked", x.done ? "true" : "false");
+        b.appendChild(h("span", "box", "✓")); b.appendChild(h("span", "tt", x.t)); if (x.due) b.appendChild(h("span", "due", fmt(x.due, { day: "2-digit", month: "2-digit", year: "2-digit" })));
+        b.addEventListener("click", function () {
+          if (x.own != null) state.own[x.own].x = !state.own[x.own].x;
+          else { var k = state.done.indexOf(x.id); if (k >= 0) state.done.splice(k, 1); else state.done.push(x.id); }
+          touch(); if (!x.done) toast("Erledigt. Die Torte wächst!"); });
+        box.appendChild(b); });
+    });
+  }
+
+  /* ---------- Eingaben ---------- */
+  $("iDate").addEventListener("change", function () { state.date = /^\d{4}-\d{2}-\d{2}$/.test(this.value) ? this.value : ""; touch(); });
+  $("iNames").addEventListener("change", function () { state.names = this.value.trim(); touch(); });
+  $("iBudget").addEventListener("change", function () { var n = num(this.value); state.budget = n > 0 ? Math.round(n) : 0; touch(); });
+  var sel = $("cCat"); CATS.forEach(function (c, i) { var o = h("option", null, c); o.value = i; sel.appendChild(o); });
+  $("costForm").addEventListener("submit", function (e) { e.preventDefault(); var a = num($("cAmt").value);
+    if (!(a > 0)) { $("cAmt").focus(); toast("Bitte einen Preis eintragen."); return; }
+    var c = +sel.value || 0; state.costs.push({ t: $("cWhat").value.trim() || CATS[c], c: c, a: Math.round(a * 100) / 100, s: 0 }); $("cWhat").value = ""; $("cAmt").value = ""; touch(); toast("Eingetragen: " + eur(a)); });
+  $("guestForm").addEventListener("submit", function (e) { e.preventDefault(); var n = $("gName").value.trim();
+    if (!n) { $("gName").focus(); toast("Bitte einen Namen eintragen."); return; }
+    var p = parseInt($("gPers").value, 10); state.guests.push({ n: n, p: p > 0 && p < 100 ? p : 1, s: 0, t: 0 }); $("gName").value = ""; $("gPers").value = ""; touch(); toast(n + " eingetragen"); });
+  $("taskForm").addEventListener("submit", function (e) { e.preventDefault(); var t = $("tText").value.trim();
+    if (!t) { $("tText").focus(); toast("Was ist zu tun?"); return; }
+    state.own.push({ t: t, d: /^\d{4}-\d{2}-\d{2}$/.test($("tDate").value) ? $("tDate").value : "", x: false }); $("tText").value = ""; $("tDate").value = ""; touch(); toast("Aufgabe gespeichert"); });
+
+
+  /* ---------- Laden, Sichern, Löschen (gemeinsam) ---------- */
+  try { var raw = localStorage.getItem(KEY); if (raw) { var s0 = JSON.parse(raw); if (s0 && s0.v === 1 && s0.app === APP) state = fix(s0); } } catch (e) {}
+  if (!state) state = example();
+  tabs.forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-tab")); }); });
+  document.querySelectorAll("[data-go]").forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-go")); }); });
+  document.querySelectorAll("[data-clear-example]").forEach(function (b) { b.addEventListener("click", function () { state = clearExample(state); state.example = false; touch(); toast("Beispiele gelöscht. Jetzt gehört die App euch."); }); });
+  $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
+  $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
+  $("resetYes").addEventListener("click", function () { state = blank(); touch(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
+  $("exportBtn").addEventListener("click", function () {
+    try { var blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" }); var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "tabellenheld-" + APP + "-sicherung.json"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast("Sicherung gespeichert"); }
+    catch (e) { toast("Speichern hat nicht geklappt."); } });
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
+    rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || s.app !== APP) throw 0; s.example = false; state = fix(s); touch(); toast("Sicherung geladen"); }
+      catch (err) { toast("Diese Datei ist keine Sicherung dieser App."); } e.target.value = ""; };
+    rd.readAsText(f); });
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
+  $("installBtn").addEventListener("click", function () { if (!deferred) return; deferred.prompt(); deferred = null; $("installBtn").hidden = true; });
+  function renderAll() { document.querySelectorAll("[data-ex]").forEach(function (x) { x.hidden = !state.example; }); }
+  var _render = render; render = function () { renderAll(); _render(); };
+  render();
+  var hash = (location.hash || "").slice(1); if (document.getElementById("v-" + hash)) go(hash, false);
+  if (typeof start === "function") start();
+  if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
+})();
+
+</script>
+</body>
+</html>

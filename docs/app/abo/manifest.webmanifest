@@ -1,0 +1,25 @@
+{
+  "name": "Abo- und Fixkosten-Tracker 2027",
+  "short_name": "Abo-Monster",
+  "description": "Bonus-App zum Tabellenheld Abo- und Fixkosten-Tracker 2027: Verträge, Fristen, Jahresplan und Sparpotenzial. Alle Daten bleiben auf deinem Gerät.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F1F6F7",
+  "theme_color": "#F1F6F7",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
