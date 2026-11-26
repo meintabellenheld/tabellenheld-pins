@@ -49,6 +49,7 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 html, body { margin: 0; background: var(--page); color: var(--ink); }
 body { font-family: var(--body); font-size: 15px; line-height: 1.45; min-height: 100vh; }
@@ -73,7 +74,7 @@ h2 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0 0
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .stat { background: var(--soft); border-radius: 12px; padding: 10px; min-width: 0; }
 .stat b { display: block; font-family: var(--display); font-weight: 600; font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stat span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 600; }
+.stat span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; text-transform: uppercase; letter-spacing: .2px; color: var(--muted); font-weight: 600; }
 .pos b { color: var(--pine); } .neg b { color: var(--berry); }
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .tile { text-align: left; border: 0; cursor: pointer; display: grid; gap: 2px; }
@@ -89,7 +90,8 @@ h2 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0 0
 .cookieText .big { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
 .cookieText p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
 .cats { display: grid; gap: 9px; margin-top: 4px; }
-.cat { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13.5px; }
+.cat .catName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13.5px; }
 .cat .track { height: 10px; background: var(--soft); border-radius: 999px; overflow: hidden; }
 .cat .track i { display: block; height: 100%; border-radius: 999px; transition: width .5s; }
 .cat b { font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -105,6 +107,9 @@ form.card { display: grid; gap: 10px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip { font-size: 13px; border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); }
+.chip.dotted::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dot); margin-right: 6px; vertical-align: 1px; }
+.chip.chipDel { padding: 6px 8px; margin-left: -4px; color: var(--muted); font-size: 11px; }
+.chip.chipAdd { border-style: dashed; color: var(--muted); }
 .btn { font-family: var(--display); font-weight: 600; font-size: 16px; border: 0; border-radius: 14px; padding: 12px 16px; background: var(--berry); color: var(--berry-ink); cursor: pointer; width: 100%; }
 .btn.ghost { background: var(--soft); color: var(--ink); }
 .btn:active { transform: scale(.98); }
@@ -207,7 +212,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     <div class="card">
       <div class="stats">
         <div class="stat"><span>Budget</span><b id="sBudget">0 €</b></div>
-        <div class="stat"><span>Ausgegeben</span><b id="sSpent">0 €</b></div>
+        <div class="stat"><span>Ausgaben</span><b id="sSpent">0 €</b></div>
         <div class="stat pos" id="freeBox"><span>Noch frei</span><b id="sFree">0 €</b></div>
       </div>
     </div>
@@ -240,7 +245,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       </div>
       <div class="stats" style="margin-top:14px">
         <div class="stat"><span>Budget</span><b id="bBudget">0 €</b></div>
-        <div class="stat"><span>Ausgegeben</span><b id="bSpent">0 €</b></div>
+        <div class="stat"><span>Ausgaben</span><b id="bSpent">0 €</b></div>
         <div class="stat pos" id="bFreeBox"><span>Noch frei</span><b id="bFree">0 €</b></div>
       </div>
       <div class="field" style="margin-top:12px"><label for="budget">Mein Budget in €</label><input id="budget" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 600"></div>
@@ -253,6 +258,10 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
         <div class="field small"><label for="expAmt">Betrag €</label><input id="expAmt" type="text" inputmode="decimal" placeholder="25" autocomplete="off"></div>
       </div>
       <div class="chips" id="chips" role="group" aria-label="Bereich"></div>
+      <div class="row" id="catNew" hidden>
+        <div class="field"><label for="catName">Neuer Bereich</label><input id="catName" placeholder="z. B. Haustier, Friseur" autocomplete="off" maxlength="24"></div>
+        <div class="row" style="align-items:flex-end;flex:0 1 auto;gap:6px"><button class="chip" type="button" id="catAdd" style="padding:10px 14px;background:var(--ink);color:var(--page);border-color:var(--ink)">Anlegen</button><button class="chip" type="button" id="catCancel" style="padding:10px 14px">Abbrechen</button></div>
+      </div>
       <button class="btn" type="submit">Eintragen</button>
     </form>
     <div class="card"><h2>Ausgaben</h2><ul class="list" id="expList"></ul><p class="empty" id="expEmpty" hidden>Noch keine Ausgaben. Das Plätzchen ist noch ganz.</p></div>
@@ -348,17 +357,22 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   function eur(v) { v = Math.round(v * 100) / 100; var neg = v < 0; v = Math.abs(v);
-    var s = v.toLocaleString("de-DE", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); return (neg ? "−" : "") + s + " €"; }
+    var s = v.toLocaleString("de-DE", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); return (neg ? "−" : "") + s + "\u00a0€"; }
   function num(s) { s = String(s || "").trim().replace(/\s|€/g, ""); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); var n = parseFloat(s); return isFinite(n) ? n : NaN; }
 
-  var CATS = [{ k: "Geschenke", c: "#c8283c", i: "G" }, { k: "Essen", c: "#2f7d52", i: "E" }, { k: "Deko", c: "#d08a1a", i: "D" }, { k: "Ausflüge", c: "#3d6fb6", i: "A" }, { k: "Sonstiges", c: "#8a7fa6", i: "S" }];
+  var BASE_CATS = [{ k: "Geschenke", c: "#c8283c" }, { k: "Essen & Trinken", c: "#2f7d52" }, { k: "Deko", c: "#d08a1a" }, { k: "Ausflüge", c: "#3d6fb6" },
+    { k: "Kleidung", c: "#b0417a" }, { k: "Fahrt & Reise", c: "#2a8c8c" }, { k: "Karten & Porto", c: "#7a6a3a" }, { k: "Spenden", c: "#5b8f3a" }, { k: "Sonstiges", c: "#8a7fa6" }];
+  var EXTRA_COLS = ["#e0703a", "#4a5fc1", "#9c3f2e", "#1f7a5c", "#c2559b", "#6b7d2a", "#3b8fc2", "#a0522d"];
+  var CATS = BASE_CATS;
+  function syncCats() { CATS = BASE_CATS.slice(0, -1).concat((state.cats || []).map(function (x, i) { return { k: x.k, c: x.c || EXTRA_COLS[i % EXTRA_COLS.length], own: true }; })).concat([BASE_CATS[BASE_CATS.length - 1]]); }
+  function catOf(name) { if (name === "Essen") name = "Essen & Trinken"; return CATS.filter(function (k) { return k.k === name; })[0] || CATS[CATS.length - 1]; }
   var STATUS = ["geplant", "gekauft", "verpackt"];
   var KEY = "tabellenheld-frosty-v1";
 
   function exampleState() {
     var y = new Date().getFullYear();
     return { v: 1, example: true, budget: 600, items: [
-      { w: "Gans vom Hof", a: 45, c: "Essen" }, { w: "Lichterkette Balkon", a: 19.9, c: "Deko" }, { w: "Weihnachtsmarkt mit Kindern", a: 32, c: "Ausflüge" }, { w: "Geschenkpapier + Band", a: 12.5, c: "Sonstiges" }],
+      { w: "Gans vom Hof", a: 45, c: "Essen & Trinken" }, { w: "Lichterkette Balkon", a: 19.9, c: "Deko" }, { w: "Weihnachtsmarkt mit Kindern", a: 32, c: "Ausflüge" }, { w: "Geschenkpapier + Band", a: 12.5, c: "Sonstiges" }],
       gifts: [
         { n: "Mama", g: "Kuscheldecke", p: 39.99, s: 2 }, { n: "Papa", g: "Werkzeugset", p: 54.9, s: 1 }, { n: "Lena", g: "Lego-Set", p: 49.99, s: 1 },
         { n: "Oma", g: "Fotokalender", p: 24.9, s: 0 }, { n: "Wichteln Büro", g: "Gutschein", p: 15, s: 0 }],
@@ -368,7 +382,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   var state = null;
   try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.v === 1 && Array.isArray(s.items)) state = s; } } catch (e) {}
   if (!state) state = exampleState();
-  ["items", "gifts", "dates", "opened"].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
+  ["items", "gifts", "dates", "opened", "cats"].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function touch() { if (state.example) { state.example = false; } save(); render(); }
 
@@ -504,12 +518,38 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   }
 
   /* ---------- Bereiche-Chips ---------- */
-  var cat = "Essen";
-  CATS.forEach(function (x) { if (x.k === "Geschenke") return; var c = h("button", "chip", x.k); c.type = "button"; c.setAttribute("aria-pressed", x.k === cat);
-    c.addEventListener("click", function () { cat = x.k; $("chips").querySelectorAll(".chip").forEach(function (b) { b.setAttribute("aria-pressed", b.textContent === cat); }); }); $("chips").appendChild(c); });
-  // Geschenke-Chip zusätzlich (für Kleinkram wie Karten)
-  (function () { var c = h("button", "chip", "Geschenke"); c.type = "button"; c.setAttribute("aria-pressed", false);
-    c.addEventListener("click", function () { cat = "Geschenke"; $("chips").querySelectorAll(".chip").forEach(function (b) { b.setAttribute("aria-pressed", b.textContent === cat); }); }); $("chips").insertBefore(c, $("chips").firstChild); })();
+  var cat = "Geschenke";
+  function renderChips() {
+    var box = $("chips"); box.textContent = "";
+    if (!CATS.some(function (c) { return c.k === cat; })) cat = "Geschenke";
+    CATS.forEach(function (x) {
+      var c = h("button", "chip", x.k); c.type = "button"; c.setAttribute("aria-pressed", x.k === cat ? "true" : "false");
+      c.style.setProperty("--dot", x.c); c.classList.add("dotted");
+      c.addEventListener("click", function () { cat = x.k; renderChips(); });
+      box.appendChild(c);
+      if (x.own) { var d = h("button", "chip chipDel", "✕"); d.type = "button"; d.setAttribute("aria-label", "Bereich " + x.k + " entfernen");
+        d.addEventListener("click", function () { removeCat(x.k); }); box.appendChild(d); }
+    });
+    var add = h("button", "chip chipAdd", "+ Eigener Bereich"); add.type = "button";
+    add.addEventListener("click", function () { $("catNew").hidden = false; $("catName").focus(); });
+    box.appendChild(add);
+  }
+  function removeCat(name) {
+    var used = state.items.filter(function (x) { return x.c === name; }).length;
+    state.items.forEach(function (x) { if (x.c === name) x.c = "Sonstiges"; });
+    state.cats = state.cats.filter(function (x) { return x.k !== name; }); syncCats(); touch();
+    toast(used ? "Bereich entfernt. " + used + " Ausgabe(n) jetzt unter Sonstiges." : "Bereich entfernt.");
+  }
+  $("catAdd").addEventListener("click", function () {
+    var n = $("catName").value.trim().replace(/\s+/g, " ");
+    if (!n) { $("catName").focus(); return; }
+    if (CATS.some(function (c) { return c.k.toLowerCase() === n.toLowerCase(); })) { toast("Den Bereich gibt es schon."); cat = n; renderChips(); return; }
+    if (state.cats.length >= 12) { toast("Maximal 12 eigene Bereiche."); return; }
+    state.cats.push({ k: n.slice(0, 24), c: EXTRA_COLS[state.cats.length % EXTRA_COLS.length] }); syncCats(); cat = n.slice(0, 24);
+    $("catName").value = ""; $("catNew").hidden = true; touch(); toast("Bereich „" + cat + "“ angelegt");
+  });
+  $("catName").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); $("catAdd").click(); } });
+  $("catCancel").addEventListener("click", function () { $("catName").value = ""; $("catNew").hidden = true; });
 
   /* ---------- Advent ---------- */
   var TIPS = [
@@ -601,15 +641,18 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     cookie(T.budget > 0 ? T.r : 0);
     // Bereiche
     var sums = {}; CATS.forEach(function (c) { sums[c.k] = 0; });
+    state.items.forEach(function (x) { if (x.c === "Essen") x.c = "Essen & Trinken"; });
     state.items.forEach(function (x) { sums[x.c in sums ? x.c : "Sonstiges"] += +x.a || 0; }); sums.Geschenke += T.bought;
-    var mx = Math.max.apply(null, CATS.map(function (c) { return sums[c.k]; }).concat([1]));
+    var used = CATS.filter(function (c) { return sums[c.k] > 0; }).sort(function (a, b) { return sums[b.k] - sums[a.k]; });
+    var mx = used.length ? sums[used[0].k] : 1;
     var cb = $("cats"); cb.textContent = "";
-    CATS.forEach(function (c) { var r = h("div", "cat"); r.appendChild(h("span", null, c.k)); var tr = h("span", "track"); var bar = h("i"); bar.style.width = (sums[c.k] / mx * 100) + "%"; bar.style.background = c.c; tr.appendChild(bar); r.appendChild(tr); r.appendChild(h("b", null, eur(sums[c.k]))); cb.appendChild(r); });
+    if (!used.length) cb.appendChild(h("p", "empty", "Noch nichts ausgegeben. Sobald du etwas einträgst, siehst du hier, wohin das Geld geht."));
+    used.forEach(function (c) { var r = h("div", "cat"); r.appendChild(h("span", "catName", c.k)); var tr = h("span", "track"); var bar = h("i"); bar.style.width = (sums[c.k] / mx * 100) + "%"; bar.style.background = c.c; tr.appendChild(bar); r.appendChild(tr); r.appendChild(h("b", null, eur(sums[c.k]))); cb.appendChild(r); });
     $("giftNote").textContent = T.planned > 0 ? "Noch geplant, aber nicht gekauft: " + eur(T.planned) + " für Geschenke." + (T.budget > 0 && T.spent + T.planned > T.budget ? " Das würde das Budget sprengen." : "") : "";
     var ul = $("expList"); ul.textContent = "";
     state.items.map(function (x, i) { return [x, i]; }).reverse().forEach(function (p) {
-      var x = p[0], idx = p[1], c = CATS.filter(function (k) { return k.k === x.c; })[0] || CATS[4];
-      var li = h("li"); var d = h("span", "dot", c.i); d.style.background = c.c; li.appendChild(d);
+      var x = p[0], idx = p[1], c = catOf(x.c);
+      var li = h("li"); var d = h("span", "dot", c.k.charAt(0).toUpperCase()); d.style.background = c.c; li.appendChild(d);
       var w = h("span", "what"); w.appendChild(h("span", null, x.w)); w.appendChild(h("small", null, x.c)); li.appendChild(w);
       li.appendChild(h("span", "amt", eur(+x.a)));
       var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", "Ausgabe " + x.w + " löschen");
@@ -649,7 +692,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     $("dateEmpty").hidden = state.dates.length > 0;
   }
 
-  function render() { renderStart(); renderBudget(); renderGifts(); renderDates(); renderDoors(); }
+  function render() { syncCats(); renderChips(); renderStart(); renderBudget(); renderGifts(); renderDates(); renderDoors(); }
 
   /* ---------- Eingaben ---------- */
   $("budget").addEventListener("input", function (e) { var v = num(e.target.value); state.budget = v > 0 ? v : 0; state.example = false; save(); renderStart(); renderBudget(); $("exampleHint").hidden = true; });
@@ -664,11 +707,11 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   $("dateForm").addEventListener("submit", function (e) { e.preventDefault(); var d = $("dDate").value, t = $("dWhat").value.trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { $("dDate").focus(); toast("Bitte ein Datum wählen."); return; }
     state.dates.push({ d: d, t: t || "Termin" }); $("dWhat").value = ""; touch(); toast("Termin gespeichert"); });
-  $("clearExample").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: state.opened }; save(); render(); toast("Beispiele gelöscht. Jetzt gehört Frosty dir."); go("budget"); $("budget").focus(); });
+  $("clearExample").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: state.opened, cats: state.cats }; save(); render(); toast("Beispiele gelöscht. Jetzt gehört Frosty dir."); go("budget"); $("budget").focus(); });
 
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
-  $("resetYes").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: [] }; save(); render();
+  $("resetYes").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: [], cats: [] }; save(); render();
     $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
 
   $("exportBtn").addEventListener("click", function () {
@@ -678,7 +721,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
     rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || !Array.isArray(s.items)) throw 0;
-      ["items", "gifts", "dates", "opened"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); s.example = false; state = s; save(); render(); toast("Sicherung geladen"); }
+      ["items", "gifts", "dates", "opened", "cats"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); s.example = false; state = s; save(); render(); toast("Sicherung geladen"); }
       catch (err) { toast("Diese Datei ist keine Frosty-Sicherung."); } e.target.value = ""; };
     rd.readAsText(f); });
 
