@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Frosty Weihnachtsplaner</title>
-<meta name="description" content="Bonus-App zum Tabellenheld Weihnachtsplaner: Budget, Geschenke und Adventskalender mit Frosty. Alle Daten bleiben auf deinem Gerät.">
+<title>Flocke Weihnachtsplaner</title>
+<meta name="description" content="Bonus-App zum Tabellenheld Weihnachtsplaner: Budget, Geschenke und Adventskalender mit Flocke. Alle Daten bleiben auf deinem Gerät.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#9fd3f5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Frosty">
+<meta name="apple-mobile-web-app-title" content="Flocke">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -19,7 +19,7 @@
 @font-face { font-family: "Inter"; src: url(fonts/inter-400.ttf) format("truetype"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Inter"; src: url(fonts/inter-600.ttf) format("truetype"); font-weight: 600; font-display: swap; }
 
-/* Aufbau: Handy-Spalte, unten feste Reiterleiste. Reiter: Start (Frosty), Budget (Plätzchen), Geschenke, Advent, Mehr. */
+/* Aufbau: Handy-Spalte, unten feste Reiterleiste. Reiter: Start (Flocke), Budget (Plätzchen), Geschenke, Advent, Mehr. */
 :root {
   --page: #eaf4fb; --card: #ffffff; --soft: #f2f8fd; --ink: #1d2b3a; --muted: #5d7186; --line: #dbe7f1;
   --berry: #c8283c; --berry-ink: #ffffff; --pine: #2f7d52; --gold: #e0a020; --ice: #7dbde6;
@@ -174,10 +174,10 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   <!-- START -->
   <section class="view on" id="v-start" aria-label="Start">
     <header class="top">
-      <div><h1>Frosty passt auf</h1><p class="sub" id="countdown">Dein Weihnachtsbudget im Blick.</p></div>
+      <div><h1>Flocke passt auf</h1><p class="sub" id="countdown">Dein Weihnachtsbudget im Blick.</p></div>
     </header>
     <div class="hint" id="exampleHint" hidden><span>Das sind Beispieldaten zum Ausprobieren.</span><button type="button" id="clearExample">Beispiele löschen</button></div>
-    <div class="scene" role="img" aria-label="Schneemann Frosty: Je mehr vom Budget ausgegeben ist, desto mehr schmilzt er.">
+    <div class="scene" role="img" aria-label="Schneemann Flocke: Je mehr vom Budget ausgegeben ist, desto mehr schmilzt er.">
       <svg id="scene" viewBox="0 0 360 300" aria-hidden="true">
         <defs>
           <radialGradient id="sunG"><stop offset="0" stop-color="#ffe9a3"/><stop offset=".55" stop-color="#ffc43d"/><stop offset="1" stop-color="#ffb02e" stop-opacity="0"/></radialGradient>
@@ -313,7 +313,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       <h2>Als App auf den Startbildschirm</h2>
       <button class="btn" type="button" id="installBtn" hidden>Jetzt installieren</button>
       <p style="margin:0;font-size:14px"><b>iPhone (Safari):</b></p>
-      <ol class="steps"><li>Unten auf das Teilen-Symbol tippen (Quadrat mit Pfeil).</li><li>„Zum Home-Bildschirm“ wählen.</li><li>„Hinzufügen“ tippen. Fertig, Frosty wohnt jetzt bei deinen Apps.</li></ol>
+      <ol class="steps"><li>Unten auf das Teilen-Symbol tippen (Quadrat mit Pfeil).</li><li>„Zum Home-Bildschirm“ wählen.</li><li>„Hinzufügen“ tippen. Fertig, Flocke wohnt jetzt bei deinen Apps.</li></ol>
       <p style="margin:10px 0 0;font-size:14px"><b>Android (Chrome):</b></p>
       <ol class="steps"><li>Oben rechts auf die drei Punkte tippen.</li><li>„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.</li></ol>
       <p class="empty" style="text-align:left;margin-top:10px">Tipp: Auf dem Startbildschirm bleiben deine Einträge am zuverlässigsten gespeichert, und die App läuft auch ohne Internet.</p>
@@ -409,7 +409,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     return { exp: exp, bought: bought, planned: planned, wrapped: wrapped, budget: budget, spent: spent, free: budget - spent, r: budget > 0 ? spent / budget : 0 };
   }
 
-  /* ---------- Frosty ---------- */
+  /* ---------- Flocke ---------- */
   var flakes = [], flakeEls = [];
   for (var i = 0; i < 28; i++) flakes.push({ x: Math.random() * 360, y: Math.random() * 240, r: 1 + Math.random() * 2.2, s: .25 + Math.random() * .5, d: Math.random() * 6 });
   flakes.forEach(function (f) { flakeEls.push(el("circle", { r: f.r }, $("flakes"))); });
@@ -472,12 +472,12 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   }
 
   function saying(T) {
-    if (T.budget <= 0) return "Hallo, ich bin Frosty! Trag unter Budget ein, wie viel du ausgeben willst.";
+    if (T.budget <= 0) return "Hallo, ich bin Flocke! Trag unter Budget ein, wie viel du ausgeben willst.";
     var r = T.r, f = eur(Math.max(0, T.free));
-    if (r > 1) return "Budget überschritten. Frosty ist geschmolzen, " + eur(-T.free) + " drüber.";
-    if (r >= .8) return "Frosty ist fast geschmolzen. Nur noch " + f + " übrig.";
-    if (r >= .6) return "Frosty taut. Noch " + f + " übrig, gut einteilen.";
-    if (r >= .4) return "Halbzeit. Frosty wird es langsam warm.";
+    if (r > 1) return "Budget überschritten. Flocke ist geschmolzen, " + eur(-T.free) + " drüber.";
+    if (r >= .8) return "Flocke ist fast geschmolzen. Nur noch " + f + " übrig.";
+    if (r >= .6) return "Flocke taut. Noch " + f + " übrig, gut einteilen.";
+    if (r >= .4) return "Halbzeit. Flocke wird es langsam warm.";
     if (r >= .2) return "Alles im Plan. Du hast noch viel Spielraum.";
     return "Frostig gut! Dein Budget ist fast unberührt.";
   }
@@ -553,7 +553,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 
   /* ---------- Advent ---------- */
   var TIPS = [
-    ["Budget festlegen", "Leg heute eine feste Summe für den ganzen Dezember fest: Geschenke, Essen, Deko, Ausflüge. Was nicht im Budget steht, wird nicht gekauft. Frosty passt auf."],
+    ["Budget festlegen", "Leg heute eine feste Summe für den ganzen Dezember fest: Geschenke, Essen, Deko, Ausflüge. Was nicht im Budget steht, wird nicht gekauft. Flocke passt auf."],
     ["Abos ausmisten", "Geh die Kontoauszüge der letzten drei Monate durch und markiere jedes Abo. Streaming, Apps, Fitness: Was du nicht wirklich nutzt, kündigst du heute. Da kommen schnell 20 bis 50 € im Monat zusammen."],
     ["Wichteln statt alle", "In großen Familien oder im Freundeskreis spart Wichteln viel Geld und Stress. Jede Person beschenkt nur eine andere, mit festem Betrag."],
     ["Spenden mit Herz", "Weihnachten ist Spendenzeit. Statt dem fünften Kleinkram-Geschenk lieber etwas spenden. Nebenbei: Spenden an gemeinnützige Organisationen kann man in der Steuererklärung angeben, bis 300 € reicht der Kontoauszug als Nachweis.", true],
@@ -576,7 +576,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     ["Umtausch absichern", "Kassenbons aufheben und nach Geschenkbelegen fragen. Was nicht passt, geht zurück statt in den Schrank. Viele Händler verlängern die Umtauschfrist freiwillig bis Januar, kurz nachfragen lohnt sich."],
     ["Großeinkauf mit Liste", "Großeinkauf fürs Fest nur mit Liste und satt erledigen, nicht hungrig. Ausgaben direkt eintragen, damit das Plätzchen ehrlich bleibt."],
     ["Nach-Weihnachts-Plan", "Deko, Geschenkpapier und Kerzen gibt es nach den Feiertagen oft stark reduziert. Schreib auf, was fürs nächste Jahr fehlt, und kauf es dann."],
-    ["Frohe Weihnachten", "Frosty wünscht dir ein wunderschönes Fest. Egal wie das Plätzchen aussieht: Du hast geplant, und das zählt. Ab Januar geht's mit dem Sparen weiter."]
+    ["Frohe Weihnachten", "Flocke wünscht dir ein wunderschönes Fest. Egal wie das Plätzchen aussieht: Du hast geplant, und das zählt. Ab Januar geht's mit dem Sparen weiter."]
   ];
   function today() { var d = new Date(); return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() }; }
   function maxDoor() { var t = today(); return t.m === 12 ? Math.min(24, t.d) : 0; }
@@ -678,7 +678,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     });
     $("giftEmpty").hidden = n > 0;
     var all = n > 0 && T.wrapped === n;
-    if (all && wasAllWrapped === false) { confetti(); toast("Alles verpackt! Frosty ist stolz auf dich."); }
+    if (all && wasAllWrapped === false) { confetti(); toast("Alles verpackt! Flocke ist stolz auf dich."); }
     wasAllWrapped = all;
   }
 
@@ -707,7 +707,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   $("dateForm").addEventListener("submit", function (e) { e.preventDefault(); var d = $("dDate").value, t = $("dWhat").value.trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { $("dDate").focus(); toast("Bitte ein Datum wählen."); return; }
     state.dates.push({ d: d, t: t || "Termin" }); $("dWhat").value = ""; touch(); toast("Termin gespeichert"); });
-  $("clearExample").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: state.opened, cats: state.cats }; save(); render(); toast("Beispiele gelöscht. Jetzt gehört Frosty dir."); go("budget"); $("budget").focus(); });
+  $("clearExample").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: state.opened, cats: state.cats }; save(); render(); toast("Beispiele gelöscht. Jetzt gehört Flocke dir."); go("budget"); $("budget").focus(); });
 
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
@@ -716,13 +716,13 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 
   $("exportBtn").addEventListener("click", function () {
     try { var blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" }); var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "frosty-sicherung.json"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast("Sicherung gespeichert"); }
+      a.href = URL.createObjectURL(blob); a.download = "flocke-sicherung.json"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast("Sicherung gespeichert"); }
     catch (e) { toast("Speichern hat nicht geklappt."); } });
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
     rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || !Array.isArray(s.items)) throw 0;
       ["items", "gifts", "dates", "opened", "cats"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); s.example = false; state = s; save(); render(); toast("Sicherung geladen"); }
-      catch (err) { toast("Diese Datei ist keine Frosty-Sicherung."); } e.target.value = ""; };
+      catch (err) { toast("Diese Datei ist keine Flocke-Sicherung."); } e.target.value = ""; };
     rd.readAsText(f); });
 
   var deferred = null;
