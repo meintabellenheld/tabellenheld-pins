@@ -292,8 +292,8 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 
   <!-- ADVENT -->
   <section class="view" id="v-advent" aria-label="Advent">
-    <header class="top"><div><h1>Adventskalender</h1><p class="sub" id="adventSub">Jeden Tag ein Türchen mit einem Spar- oder Steuertipp.</p></div></header>
-    <div class="card tip" id="tipCard" hidden><span class="day" id="tipDay"></span><h3 id="tipTitle"></h3><p id="tipText"></p><small class="empty" style="text-align:left;margin:4px 0 0">Planungshilfe, keine Steuerberatung. Steuertipps sind allgemeine Hinweise nach Rechtslage 2026. Ob und wie viel du zurückbekommst, hängt von deinem Fall ab, im Zweifel hilft ein Lohnsteuerhilfeverein oder eine Steuerberatung.</small></div>
+    <header class="top"><div><h1>Adventskalender</h1><p class="sub" id="adventSub">Jeden Tag ein Türchen mit einem Spar-Hack für Weihnachten.</p></div></header>
+    <div class="card tip" id="tipCard" hidden><span class="day" id="tipDay"></span><h3 id="tipTitle"></h3><p id="tipText"></p><small class="empty" id="tipNote" style="text-align:left;margin:4px 0 0">Planungshilfe, keine Steuerberatung. Allgemeiner Hinweis nach Rechtslage 2026, im Einzelfall hilft ein Lohnsteuerhilfeverein oder eine Steuerberatung.</small></div>
     <div class="card"><div class="doors" id="doors"></div></div>
     <form class="card" id="dateForm">
       <h2 style="margin:0">Termine</h2>
@@ -556,23 +556,23 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     ["Budget festlegen", "Leg heute eine feste Summe für den ganzen Dezember fest: Geschenke, Essen, Deko, Ausflüge. Was nicht im Budget steht, wird nicht gekauft. Frosty passt auf."],
     ["Abos ausmisten", "Geh die Kontoauszüge der letzten drei Monate durch und markiere jedes Abo. Streaming, Apps, Fitness: Was du nicht wirklich nutzt, kündigst du heute. Da kommen schnell 20 bis 50 € im Monat zusammen."],
     ["Wichteln statt alle", "In großen Familien oder im Freundeskreis spart Wichteln viel Geld und Stress. Jede Person beschenkt nur eine andere, mit festem Betrag."],
-    ["Spenden absetzen", "Spenden an anerkannte gemeinnützige Organisationen kannst du in der Steuererklärung angeben. Bis 300 € pro Spende reicht der Kontoauszug als Nachweis. Was bis 31.12. überwiesen ist, zählt noch für dieses Jahr."],
+    ["Spenden mit Herz", "Weihnachten ist Spendenzeit. Statt dem fünften Kleinkram-Geschenk lieber etwas spenden. Nebenbei: Spenden an gemeinnützige Organisationen kann man in der Steuererklärung angeben, bis 300 € reicht der Kontoauszug als Nachweis.", true],
     ["Die 24-Stunden-Regel", "Alles über 30 €, was nicht auf deiner Liste steht: erst in den Warenkorb, dann 24 Stunden warten. Die Hälfte davon willst du morgen gar nicht mehr."],
     ["Nikolaus-Check", "Heute ist Nikolaus. Schau auf dein Plätzchen: Wie viel ist schon angeknabbert? Wenn mehr als ein Drittel weg ist, jetzt gegensteuern, nicht am 23."],
-    ["Handwerker zurückholen", "Für Handwerker in deiner Wohnung oder deinem Haus (Reparatur, Heizungswartung, Schornsteinfeger) gibt es 20 % der Arbeitskosten direkt von der Steuer zurück, bis 1.200 € im Jahr. Wichtig: Rechnung aufheben und überweisen, nicht bar zahlen."],
-    ["Haushaltshilfen absetzen", "Putzhilfe, Gartenpflege, Winterdienst: Auch hier gibt es 20 % der Arbeitskosten zurück, bis 4.000 € im Jahr. Als Mieter stehen solche Posten oft in der Nebenkostenabrechnung. Raussuchen lohnt sich."],
+    ["Budget pro Person", "Leg für jede Person einen Höchstbetrag fest und trag ihn bei den Geschenken als Preis ein. Wer pro Kopf plant, tappt nicht in die Falle „noch was Kleines dazu“."],
+    ["Selbstgemacht wirkt edel", "Ein Glas Plätzchen, Gewürzsalz oder heiße Schokolade im Glas kostet ein paar Euro, sieht mit schönem Etikett aber richtig edel aus. Kommt oft besser an als Ware von der Stange."],
     ["Versand clever", "Füll den Warenkorb nicht mit Krimskrams auf, nur um den Gratisversand zu knacken. Lieber Bestellungen bündeln oder Abholung im Laden wählen. Und Lieferzeiten prüfen, ab Mitte Dezember wird es knapp."],
-    ["Arbeitsmittel vorziehen", "Brauchst du für den Job einen Laptop, Schreibtischstuhl oder Fachbücher? Bis 952 € inklusive Mehrwertsteuer lässt sich so etwas im Kaufjahr komplett absetzen. Lohnt sich vor allem, wenn deine Werbungskosten über der Pauschale liegen."],
+    ["Erlebnis statt Zeug", "Ein Gutschein für einen gemeinsamen Ausflug, einen Kochabend oder einen Babysitter-Abend kostet wenig Geld und bleibt länger in Erinnerung als jedes Paket."],
     ["Menü planen", "Leg das Festessen fest und schreib eine Einkaufsliste nach Rezept. Wer plant, kauft nichts doppelt und wirft nach den Feiertagen weniger weg."],
     ["Halbzeit-Check", "Wie viele Geschenke sind schon gekauft? Alles, was noch auf „geplant“ steht, ist dein Restprogramm. Reicht das Budget dafür noch?"],
     ["Gutscheine und Punkte", "Schau nach alten Gutscheinen, Guthaben und Bonuspunkten. Viele verfallen zum Jahresende. Damit lässt sich ein Teil der Geschenke bezahlen."],
-    ["Homeoffice-Tage zählen", "Zähl, an wie vielen Tagen du dieses Jahr von zu Hause gearbeitet hast. Pro Tag sind 6 € absetzbar, bis 1.260 € im Jahr. Am besten jetzt im Kalender nachsehen, solange du es noch weißt."],
-    ["Freistellungsauftrag prüfen", "Bis 1.000 € Zinsen und Kapitalerträge im Jahr sind steuerfrei, für Ehepaare 2.000 €. Prüf, ob dein Freistellungsauftrag richtig auf deine Banken verteilt ist. Sonst zieht die Bank unnötig Steuer ab."],
+    ["Verpackung für fast nix", "Packpapier, Zeitungsseiten oder Stoffreste mit rotem Band sehen edel aus. Schleifen, Tüten und Kartons vom letzten Jahr einfach wiederverwenden."],
+    ["Preisalarm statt Prospekte", "Für größere Wünsche einen Preisalarm bei einem Vergleichsportal setzen und erst dann zuschlagen. Werbe-Newsletter abbestellen, die verführen nur zu Käufen, die nicht auf der Liste stehen."],
     ["Fleisch und Fisch vorbestellen", "Gans, Braten oder Fisch jetzt beim Metzger oder Hof vorbestellen. Kurz vor dem Fest ist vieles ausverkauft oder deutlich teurer."],
-    ["Verträge zum Jahreswechsel", "Strom, Gas, Handy, Versicherungen: Notier dir, wann deine Verträge enden und wie lang die Kündigungsfrist ist. Ein Wechsel zum Jahresanfang spart oft mehr als ein ganzer Geschenke-Einkauf."],
+    ["Kinder clever beschenken", "Ein großes Geschenk freut Kinder oft mehr als zehn kleine. Und bei Spielzeug lohnt der Blick auf Kleinanzeigen: oft wie neu, für den halben Preis."],
     ["Letzte Bestellungen", "Online-Bestellungen möglichst bis heute erledigen, damit sie sicher vor Heiligabend ankommen. Danach nur noch im Laden, dann kauft man schneller zu teuer."],
     ["Puffer behalten", "Halte rund zehn Prozent des Budgets frei für Vergessenes. Irgendwer taucht immer noch auf, und dann musst du nicht ins Minus."],
-    ["Belege-Ordner anlegen", "Leg heute einen Ordner oder ein Handy-Album für Belege an: Spenden, Handwerker, Arbeitsmittel, Fahrtkosten, Arztkosten. Wer im Frühjahr alles beisammen hat, holt bei der Steuererklärung mehr raus."],
+    ["Backen statt kaufen", "Ein Nachmittag Plätzchenbacken ist Programm, Geschenk und Deko in einem. Selbst gebacken ist meist deutlich günstiger als fertige Plätzchen in gleicher Menge."],
     ["Umtausch absichern", "Kassenbons aufheben und nach Geschenkbelegen fragen. Was nicht passt, geht zurück statt in den Schrank. Viele Händler verlängern die Umtauschfrist freiwillig bis Januar, kurz nachfragen lohnt sich."],
     ["Großeinkauf mit Liste", "Großeinkauf fürs Fest nur mit Liste und satt erledigen, nicht hungrig. Ausgaben direkt eintragen, damit das Plätzchen ehrlich bleibt."],
     ["Nach-Weihnachts-Plan", "Deko, Geschenkpapier und Kerzen gibt es nach den Feiertagen oft stark reduziert. Schreib auf, was fürs nächste Jahr fehlt, und kauf es dann."],
@@ -581,7 +581,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   function today() { var d = new Date(); return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() }; }
   function maxDoor() { var t = today(); return t.m === 12 ? Math.min(24, t.d) : 0; }
   function showTip(n) {
-    $("tipCard").hidden = false; $("tipDay").textContent = n + ". Dezember"; $("tipTitle").textContent = TIPS[n - 1][0]; $("tipText").textContent = TIPS[n - 1][1];
+    $("tipCard").hidden = false; $("tipDay").textContent = n + ". Dezember"; $("tipTitle").textContent = TIPS[n - 1][0]; $("tipText").textContent = TIPS[n - 1][1]; $("tipNote").hidden = !TIPS[n - 1][2];
   }
   function renderDoors() {
     var md = maxDoor(), box = $("doors"); box.textContent = "";
@@ -601,7 +601,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       box.appendChild(b);
     });
     var t = today();
-    $("adventSub").textContent = md === 0 ? (t.m === 11 ? "Ab dem 1. Dezember öffnet sich jeden Tag ein Türchen mit einem Spar- oder Steuertipp." : "Der Kalender startet wieder am 1. Dezember.") : "Jeden Tag ein Türchen mit einem Spar- oder Steuertipp.";
+    $("adventSub").textContent = md === 0 ? (t.m === 11 ? "Ab dem 1. Dezember öffnet sich jeden Tag ein Türchen mit einem Spar-Hack für Weihnachten." : "Der Kalender startet wieder am 1. Dezember.") : "Jeden Tag ein Türchen mit einem Spar-Hack für Weihnachten.";
   }
 
   /* ---------- Darstellung ---------- */
