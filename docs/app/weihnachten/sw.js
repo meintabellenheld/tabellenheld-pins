@@ -1,5 +1,5 @@
 // Offline-Speicher für die Frosty-App. Nur eigene Dateien, keine Daten der Nutzer.
-const CACHE = "frosty-v4";
+const CACHE = "frosty-v5";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
   "fonts/fredoka.ttf", "fonts/inter-400.ttf", "fonts/inter-600.ttf"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });

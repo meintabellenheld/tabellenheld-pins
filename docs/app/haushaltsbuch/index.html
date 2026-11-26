@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moni Haushaltsbuch</title>
+<meta name="description" content="Bonus-App zum Tabellenheld Haushaltsbuch: Einnahmen, Ausgaben, Budgets und Abo-Check mit Moni, dem Geldbaum. Alle Daten bleiben auf deinem Gerät.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#cfe9e2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Moni">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+@font-face { font-family: "Fredoka"; src: url(fonts/fredoka.ttf) format("truetype"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(fonts/inter-400.ttf) format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(fonts/inter-600.ttf) format("truetype"); font-weight: 600; font-display: swap; }
+
+/* Aufbau: Handy-Spalte, unten feste Reiterleiste. Reiter: Start (Moni + Monat), Buchen, Budget, Abos, Mehr. */
+:root {
+  --page: #eef6f3; --card: #ffffff; --soft: #f1f7f5; --ink: #1c2b2a; --muted: #5b706d; --line: #d9e8e3;
+  --pri: #1f6f6b; --pri-ink: #ffffff; --good: #2f8a55; --bad: #c8403a; --gold: #d99a1e; --focus: #6cc3b5;
+  --sky-top: #cfe9e2; --sky-bot: #f4faf8; --ground: #dcebd5; --ground2: #c6ddbc;
+  --hint-bg: #fff4d6; --hint-ink: #7a5600; --nav: rgba(255,255,255,.94);
+  --shadow: 0 2px 10px rgba(28,43,42,.07);
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1b1a; --card: #172625; --soft: #1e302e; --ink: #e8f3f0; --muted: #9db5b0; --line: #2a403d;
+    --pri: #4fb3a6; --pri-ink: #0f1b1a; --good: #5cc488; --bad: #ef6a62; --gold: #f0bd4f; --focus: #6cc3b5;
+    --sky-top: #12302c; --sky-bot: #24433e; --ground: #2f4a35; --ground2: #263d2b;
+    --hint-bg: #3a2f12; --hint-ink: #f5d38a; --nav: rgba(23,38,37,.95); --shadow: 0 2px 10px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1b1a; --card: #172625; --soft: #1e302e; --ink: #e8f3f0; --muted: #9db5b0; --line: #2a403d;
+  --pri: #4fb3a6; --pri-ink: #0f1b1a; --good: #5cc488; --bad: #ef6a62; --gold: #f0bd4f; --focus: #6cc3b5;
+  --sky-top: #12302c; --sky-bot: #24433e; --ground: #2f4a35; --ground2: #263d2b;
+  --hint-bg: #3a2f12; --hint-ink: #f5d38a; --nav: rgba(23,38,37,.95); --shadow: 0 2px 10px rgba(0,0,0,.3);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; background: var(--page); color: var(--ink); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.45; min-height: 100vh; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 520px; margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(92px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; gap: 14px; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 2px 0; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 24px; margin: 0; line-height: 1.15; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0 0 10px; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.hint { background: var(--hint-bg); color: var(--hint-ink); border-radius: 14px; padding: 10px 12px; font-size: 13px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.hint button { border: 0; background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.view { display: none; gap: 14px; }
+.view.on { display: grid; animation: fade .25s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Monatswahl */
+.month { display: flex; align-items: center; gap: 6px; background: var(--card); border-radius: 999px; padding: 4px; box-shadow: var(--shadow); }
+.month button { border: 0; background: var(--soft); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1; }
+.month span { font-family: var(--display); font-weight: 600; font-size: 15px; min-width: 112px; text-align: center; }
+
+/* Szene */
+.scene { position: relative; border-radius: 22px; overflow: hidden; background: linear-gradient(var(--sky-top), var(--sky-bot)); box-shadow: 0 10px 30px rgba(28,43,42,.12); }
+.scene svg { display: block; width: 100%; height: auto; }
+.bubble { position: absolute; left: 14px; top: 14px; max-width: 58%; background: #fff; color: #1c2b2a; border-radius: 16px 16px 16px 4px; padding: 10px 12px; font-family: var(--display); font-weight: 600; font-size: 15.5px; line-height: 1.22; box-shadow: 0 4px 14px rgba(28,43,42,.16); }
+.bubble small { display: block; font-family: var(--body); font-weight: 600; font-size: 11.5px; color: #5b706d; margin-top: 5px; letter-spacing: .3px; text-transform: uppercase; }
+.leaf { transition: transform .9s cubic-bezier(.5,0,.8,.6), opacity .9s; transform-box: fill-box; transform-origin: center; }
+.leaf.off { transform: translateY(150px) rotate(140deg); opacity: 0; }
+.flower { transition: opacity .6s, transform .6s; transform-box: fill-box; transform-origin: center; }
+.flower.off { opacity: 0; transform: scale(.2); }
+.coinJar { transition: transform .6s; transform-box: fill-box; transform-origin: bottom; }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--soft); border-radius: 12px; padding: 10px; min-width: 0; }
+.stat b { display: block; font-family: var(--display); font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; text-transform: uppercase; letter-spacing: .2px; color: var(--muted); font-weight: 600; }
+.pos b { color: var(--good); } .neg b { color: var(--bad); }
+.daily { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.daily b { font-family: var(--display); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.daily span { color: var(--muted); font-size: 13px; }
+
+/* Jahr */
+.year { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; align-items: end; height: 110px; margin-top: 6px; }
+.ym { display: grid; gap: 2px; align-items: end; justify-items: center; height: 100%; grid-template-rows: 1fr auto; cursor: pointer; border: 0; background: none; padding: 0; }
+.ym .bars { display: flex; gap: 2px; align-items: flex-end; height: 100%; width: 100%; justify-content: center; }
+.ym i { display: block; width: 42%; border-radius: 3px 3px 0 0; min-height: 2px; }
+.ym small { font-size: 10px; color: var(--muted); font-weight: 600; }
+.ym.cur small { color: var(--pri); }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+/* Formulare */
+label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+input, select { font: inherit; font-size: 16px; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; min-width: 0; background: var(--soft); color: var(--ink); }
+input:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.field { display: grid; gap: 4px; flex: 1 1 150px; min-width: 0; }
+.field.small { flex: 0 1 120px; }
+form.card { display: grid; gap: 10px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--soft); border-radius: 14px; padding: 4px; gap: 4px; }
+.seg button { border: 0; background: none; border-radius: 10px; padding: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.seg button[aria-pressed="true"].out { color: var(--bad); } .seg button[aria-pressed="true"].in { color: var(--good); }
+.bigAmt { font-family: var(--display); font-size: 30px !important; font-weight: 600; text-align: center; padding: 12px !important; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 13px; border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); }
+.chip.dotted::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dot); margin-right: 6px; vertical-align: 1px; }
+.chip.chipDel { padding: 6px 8px; margin-left: -4px; color: var(--muted); font-size: 11px; }
+.chip.chipAdd { border-style: dashed; color: var(--muted); }
+.btn { font-family: var(--display); font-weight: 600; font-size: 16px; border: 0; border-radius: 14px; padding: 12px 16px; background: var(--pri); color: var(--pri-ink); cursor: pointer; width: 100%; }
+.btn.ghost { background: var(--soft); color: var(--ink); }
+.btn:active { transform: scale(.98); }
+.btns { display: grid; gap: 8px; }
+
+/* Listen */
+ul.list { list-style: none; margin: 0; padding: 0; }
+ul.list li { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--line); min-width: 0; }
+ul.list li:last-child { border-bottom: 0; }
+.dayHead { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; padding: 12px 2px 2px !important; border-bottom: 0 !important; }
+.dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 13px; color: #fff; font-weight: 700; font-family: var(--display); }
+.what { flex: 1; min-width: 0; }
+.what span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.what small { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.amt.in { color: var(--good); }
+.del { border: 0; background: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 6px 8px; border-radius: 8px; flex: none; }
+.empty { color: var(--muted); font-size: 13px; text-align: center; margin: 6px 0; }
+
+/* Budget */
+.bud { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.bud:last-child { border-bottom: 0; }
+.bud .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.bud .top span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bud .top small { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+.track { height: 10px; background: var(--soft); border-radius: 999px; overflow: hidden; }
+.track i { display: block; height: 100%; border-radius: 999px; transition: width .5s; }
+.bud .edit { display: flex; gap: 8px; align-items: center; }
+.bud .edit input { padding: 6px 10px; font-size: 15px; max-width: 120px; }
+.bud .edit small { color: var(--muted); font-size: 12px; }
+.pill { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.pill.over { background: #fbe0de; color: #9b2a24; }
+
+/* Abos */
+.need { border: 0; border-radius: 999px; padding: 6px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; flex: none; min-width: 92px; }
+.n0 { background: #cdebd9; color: #1c5a39; } .n1 { background: #fde3c2; color: #7a4300; } .n2 { background: #fbd3d0; color: #8e2620; }
+.potential { font-family: var(--display); font-weight: 700; font-size: 32px; color: var(--good); line-height: 1.05; font-variant-numeric: tabular-nums; }
+
+.links { display: grid; gap: 2px; }
+.links a { color: var(--ink); text-decoration: none; padding: 11px 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 15px; }
+.links a:last-child { border-bottom: 0; }
+.steps { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+.confirm { display: none; gap: 8px; margin-top: 8px; }
+.confirm.on { display: grid; }
+.foot { text-align: center; color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--nav); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); z-index: 5; }
+nav.tabs .in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+nav.tabs button { border: 0; background: none; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; color: var(--muted); font-size: 11px; font-weight: 600; }
+nav.tabs svg { width: 24px; height: 24px; }
+nav.tabs button[aria-selected="true"] { color: var(--pri); background: var(--soft); }
+nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !important; border-radius: 16px; }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 9; max-width: calc(100% - 32px); text-align: center; }
+.toast.on { opacity: 1; transform: translateX(-50%); }
+@media (prefers-reduced-motion: reduce) { .view.on { animation: none; } .leaf, .flower, .track i, .coinJar { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- START -->
+  <section class="view on" id="v-start" aria-label="Start">
+    <header class="top">
+      <div><h1>Moni, dein Geldbaum</h1><p class="sub" id="startSub">Dein Monat auf einen Blick.</p></div>
+    </header>
+    <div class="month" role="group" aria-label="Monat wählen"><button type="button" class="mPrev" aria-label="Vormonat">‹</button><span class="mLabel"></span><button type="button" class="mNext" aria-label="Nächster Monat">›</button></div>
+    <div class="hint" id="exampleHint" hidden><span>Das sind Beispieldaten zum Ausprobieren.</span><button type="button" id="clearExample">Beispiele löschen</button></div>
+    <div class="scene" role="img" id="sceneBox" aria-label="Geldbaum Moni">
+      <svg viewBox="0 -50 360 350" aria-hidden="true">
+        <defs>
+          <radialGradient id="leafG" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#7fcf8f"/><stop offset="1" stop-color="#2f8a55"/></radialGradient>
+          <linearGradient id="potG" x1="0" x2="1"><stop offset="0" stop-color="#e07a52"/><stop offset="1" stop-color="#c25a35"/></linearGradient>
+          <linearGradient id="glass" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".75"/><stop offset="1" stop-color="#d9efff" stop-opacity=".45"/></linearGradient>
+          <clipPath id="jarClip"><rect x="262" y="206" width="56" height="58" rx="10"/></clipPath>
+        </defs>
+        <circle cx="306" cy="10" r="24" fill="#ffd66b" opacity=".9" id="sun"/>
+        <path d="M0 250 C 80 238, 150 246, 220 244 S 320 236, 360 242 L360 300 L0 300 Z" style="fill:var(--ground)"/>
+        <path d="M0 270 C 90 262, 200 272, 360 262 L360 300 L0 300 Z" style="fill:var(--ground2)"/>
+        <g id="fallen"></g>
+        <!-- Stamm -->
+        <g id="trunk" stroke-linecap="round" fill="none">
+          <path d="M170 236 C 168 200, 172 176, 168 150" stroke-width="13"/>
+          <path d="M169 196 C 150 184, 132 178, 116 160" stroke-width="8"/>
+          <path d="M170 182 C 190 170, 210 166, 228 148" stroke-width="8"/>
+          <path d="M168 156 C 160 136, 150 122, 140 104" stroke-width="7"/>
+          <path d="M168 152 C 178 132, 192 118, 206 100" stroke-width="7"/>
+          <path d="M120 164 C 108 156, 96 152, 86 140" stroke-width="5"/>
+          <path d="M224 152 C 238 146, 252 140, 262 126" stroke-width="5"/>
+        </g>
+        <g id="leaves"></g>
+        <g id="flowers"></g>
+        <!-- Topf mit Gesicht -->
+        <path d="M128 232 L212 232 L202 282 Q200 288 194 288 L146 288 Q140 288 138 282 Z" fill="url(#potG)"/>
+        <rect x="122" y="224" width="96" height="16" rx="6" fill="#e8865d"/>
+        <g id="face"></g>
+        <!-- Sparglas -->
+        <g id="jar">
+          <g clip-path="url(#jarClip)"><g id="coins" class="coinJar"></g></g>
+          <rect x="262" y="206" width="56" height="58" rx="10" fill="url(#glass)" stroke="#a9c7d6" stroke-width="2"/>
+          <rect x="266" y="198" width="48" height="10" rx="4" fill="#c9a24a"/>
+          <rect x="282" y="200" width="16" height="3" rx="1.5" fill="#7d6224"/>
+          <text x="290" y="282" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="600" font-size="11" style="fill:var(--muted)">gespart</text>
+        </g>
+      </svg>
+      <div class="bubble" id="bubble" aria-live="polite"></div>
+    </div>
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><span>Einnahmen</span><b id="sIn">0 €</b></div>
+        <div class="stat"><span>Ausgaben</span><b id="sOut">0 €</b></div>
+        <div class="stat pos" id="freeBox"><span>Übrig</span><b id="sFree">0 €</b></div>
+      </div>
+      <div class="daily" id="dailyBox"><span id="dailyLbl">Pro Tag noch</span><b id="daily">0 €</b></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-bottom:2px">Dein Jahr</h2>
+      <p class="sub" id="yearSub">Einnahmen und Ausgaben pro Monat. Tippe auf einen Monat.</p>
+      <div class="year" id="year"></div>
+      <div class="legend"><span><i style="background:var(--good)"></i>Einnahmen</span><span><i style="background:var(--bad)"></i>Ausgaben</span></div>
+    </div>
+  </section>
+
+  <!-- BUCHEN -->
+  <section class="view" id="v-buchen" aria-label="Buchen">
+    <header class="top"><div><h1>Buchen</h1><p class="sub">Betrag, Bereich, fertig. Dauert fünf Sekunden.</p></div></header>
+    <form class="card" id="entryForm">
+      <div class="seg" role="group" aria-label="Art"><button type="button" class="out" data-t="a" aria-pressed="true">Ausgabe</button><button type="button" class="in" data-t="e" aria-pressed="false">Einnahme</button></div>
+      <div class="field"><label for="eAmt">Betrag €</label><input id="eAmt" class="bigAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+      <div class="chips" id="chips" role="group" aria-label="Kategorie"></div>
+      <div class="row" id="catNew" hidden>
+        <div class="field"><label for="catName">Neue Kategorie</label><input id="catName" placeholder="z. B. Haustier" autocomplete="off" maxlength="24"></div>
+        <div class="row" style="align-items:flex-end;flex:0 1 auto;gap:6px"><button class="chip" type="button" id="catAdd" style="padding:10px 14px;background:var(--ink);color:var(--page);border-color:var(--ink)">Anlegen</button><button class="chip" type="button" id="catCancel" style="padding:10px 14px">Abbrechen</button></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="eWhat">Notiz</label><input id="eWhat" placeholder="z. B. Wocheneinkauf" autocomplete="off" maxlength="60"></div>
+        <div class="field small" style="flex-basis:150px"><label for="eDate">Datum</label><input id="eDate" type="date"></div>
+      </div>
+      <button class="btn" type="submit">Speichern</button>
+    </form>
+    <div class="month" role="group" aria-label="Monat wählen"><button type="button" class="mPrev" aria-label="Vormonat">‹</button><span class="mLabel"></span><button type="button" class="mNext" aria-label="Nächster Monat">›</button></div>
+    <div class="card"><ul class="list" id="entryList"></ul><p class="empty" id="entryEmpty" hidden>In diesem Monat noch nichts gebucht.</p></div>
+  </section>
+
+  <!-- BUDGET -->
+  <section class="view" id="v-budget" aria-label="Budget">
+    <header class="top"><div><h1>Budget</h1><p class="sub">Was du pro Monat je Kategorie einplanst, und wie viel davon schon weg ist.</p></div></header>
+    <div class="month" role="group" aria-label="Monat wählen"><button type="button" class="mPrev" aria-label="Vormonat">‹</button><span class="mLabel"></span><button type="button" class="mNext" aria-label="Nächster Monat">›</button></div>
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><span>Geplant</span><b id="bPlan">0 €</b></div>
+        <div class="stat"><span>Ausgaben</span><b id="bOut">0 €</b></div>
+        <div class="stat" id="bOverBox"><span>Überzogen</span><b id="bOver">0</b></div>
+      </div>
+    </div>
+    <div class="card"><div id="budList"></div><button class="btn ghost" type="button" id="editBud" style="margin-top:10px">Budgets bearbeiten</button></div>
+  </section>
+
+  <!-- ABOS -->
+  <section class="view" id="v-abos" aria-label="Abos">
+    <header class="top"><div><h1>Abo-Check</h1><p class="sub">Alle festen Abbuchungen an einem Ort. Ehrlich markieren, was du wirklich brauchst.</p></div></header>
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><span>Pro Monat</span><b id="aMonth">0 €</b></div>
+        <div class="stat"><span>Pro Jahr</span><b id="aYear">0 €</b></div>
+        <div class="stat"><span>Abos</span><b id="aCount">0</b></div>
+      </div>
+      <div style="margin-top:14px"><span style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Sparpotenzial im Jahr</span><div class="potential" id="aPot">0 €</div><p class="sub" id="aPotText">Markiere Abos mit „brauche ich nicht“, dann siehst du hier, was du sparen kannst.</p></div>
+    </div>
+    <form class="card" id="aboForm">
+      <h2 style="margin:0">Abo hinzufügen</h2>
+      <div class="row">
+        <div class="field"><label for="aWhat">Was?</label><input id="aWhat" placeholder="z. B. Streamingdienst" autocomplete="off" maxlength="40"></div>
+        <div class="field small"><label for="aAmt">Betrag €</label><input id="aAmt" type="text" inputmode="decimal" placeholder="9,99" autocomplete="off"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="aRhythm">Abbuchung</label><select id="aRhythm"><option value="1">monatlich</option><option value="3">vierteljährlich</option><option value="6">halbjährlich</option><option value="12">jährlich</option></select></div>
+        <div class="field"><label for="aUntil">Kündbar bis (optional)</label><input id="aUntil" type="date"></div>
+      </div>
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+    <div class="card"><ul class="list" id="aboList"></ul><p class="empty" id="aboEmpty" hidden>Noch keine Abos eingetragen.</p></div>
+  </section>
+
+  <!-- MEHR -->
+  <section class="view" id="v-mehr" aria-label="Mehr">
+    <header class="top"><div><h1>Mehr</h1><p class="sub">Einrichten, sichern, Hilfe.</p></div></header>
+    <div class="card">
+      <h2>Als App auf den Startbildschirm</h2>
+      <button class="btn" type="button" id="installBtn" hidden>Jetzt installieren</button>
+      <p style="margin:0;font-size:14px"><b>iPhone (Safari):</b></p>
+      <ol class="steps"><li>Unten auf das Teilen-Symbol tippen (Quadrat mit Pfeil).</li><li>„Zum Home-Bildschirm“ wählen.</li><li>„Hinzufügen“ tippen. Fertig, Moni wohnt jetzt bei deinen Apps.</li></ol>
+      <p style="margin:10px 0 0;font-size:14px"><b>Android (Chrome):</b></p>
+      <ol class="steps"><li>Oben rechts auf die drei Punkte tippen.</li><li>„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.</li></ol>
+      <p class="empty" style="text-align:left;margin-top:10px">Tipp: Auf dem Startbildschirm bleiben deine Einträge am zuverlässigsten gespeichert, und die App läuft auch ohne Internet.</p>
+    </div>
+    <div class="card">
+      <h2>So liest du Moni</h2>
+      <p style="margin:0;font-size:14px">Die Blätter sind das Geld, das dir diesen Monat noch bleibt. Jede Ausgabe lässt Blätter fallen. Alles, was du unter „Sparen“ buchst, landet als Münzen im Glas. Ab 10 % Sparquote fängt Moni an zu blühen.</p>
+    </div>
+    <div class="card">
+      <h2>Deine Daten</h2>
+      <p style="margin:0 0 10px;font-size:14px">Alles, was du einträgst, bleibt nur in diesem Browser auf deinem Gerät. Es wird nichts an uns oder andere gesendet. Löschst du die Browserdaten, sind auch die Einträge weg. Mit einer Sicherung kannst du sie auf ein anderes Gerät mitnehmen.</p>
+      <div class="btns">
+        <button class="btn ghost" type="button" id="exportBtn">Sicherung herunterladen</button>
+        <button class="btn ghost" type="button" id="importBtn">Sicherung laden</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button class="btn ghost" type="button" id="resetBtn">Alles löschen</button>
+        <div class="confirm" id="resetConfirm"><p style="margin:0;font-size:14px">Wirklich alle Einträge löschen? Das lässt sich nicht rückgängig machen.</p><button class="btn" type="button" id="resetYes" style="background:var(--bad);color:#fff">Ja, alles löschen</button><button class="btn ghost" type="button" id="resetNo">Abbrechen</button></div>
+      </div>
+    </div>
+    <div class="card links">
+      <a href="../../index.html#impressum">Impressum <span aria-hidden="true">›</span></a>
+      <a href="../../index.html#datenschutz">Datenschutz <span aria-hidden="true">›</span></a>
+      <a href="../../index.html">Tabellenheld Vorlagen <span aria-hidden="true">›</span></a>
+    </div>
+    <p class="foot">Bonus zum Tabellenheld Haushaltsbuch. Planungshilfe, keine Finanzberatung.</p>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Bereiche"><div class="in" role="tablist">
+  <button type="button" role="tab" data-tab="start" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-7M12 14c-3 0-5-2-5-5 3 0 5 2 5 5zM12 12c0-3 2-6 6-6 0 4-3 6-6 6z"/><path d="M7 21h10"/></svg>Start</button>
+  <button type="button" role="tab" data-tab="buchen" aria-selected="false" class="plusTab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Buchen</button>
+  <button type="button" role="tab" data-tab="budget" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="17" cy="7" r="2"/><circle cx="14" cy="17" r="2"/></svg>Budget</button>
+  <button type="button" role="tab" data-tab="abos" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/><path d="M12 8v4l2.5 2"/></svg>Abos</button>
+  <button type="button" role="tab" data-tab="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mehr</button>
+</div></nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function eur(v) { v = Math.round(v * 100) / 100; var neg = v < 0; v = Math.abs(v);
+    return (neg ? "−" : "") + v.toLocaleString("de-DE", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " €"; }
+  function num(s) { s = String(s || "").trim().replace(/\s|€/g, ""); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); var n = parseFloat(s); return isFinite(n) ? n : NaN; }
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function iso(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  var MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+  var BASE = [
+    { k: "Gehalt", t: "e", c: "#2f8a55" }, { k: "Kindergeld", t: "e", c: "#4aa37a" }, { k: "Sonstige Einnahmen", t: "e", c: "#6bb38f" },
+    { k: "Miete & Nebenkosten", t: "a", c: "#1f6f6b", b: 850 }, { k: "Strom & Heizung", t: "a", c: "#d99a1e", b: 120 }, { k: "Lebensmittel", t: "a", c: "#2f8a55", b: 450 },
+    { k: "Drogerie & Haushalt", t: "a", c: "#8a7fa6", b: 60 }, { k: "Auto & Tanken", t: "a", c: "#3d6fb6", b: 200 }, { k: "Bus & Bahn", t: "a", c: "#2a8c8c", b: 0 },
+    { k: "Versicherungen", t: "a", c: "#5e6e80", b: 120 }, { k: "Handy & Internet", t: "a", c: "#4a5fc1", b: 60 }, { k: "Streaming & Abos", t: "a", c: "#b0417a", b: 30 },
+    { k: "Kleidung", t: "a", c: "#c2559b", b: 80 }, { k: "Freizeit & Ausgehen", t: "a", c: "#e0703a", b: 120 }, { k: "Kinder", t: "a", c: "#d4a72c", b: 100 },
+    { k: "Gesundheit", t: "a", c: "#3b8fc2", b: 30 }, { k: "Geschenke", t: "a", c: "#c8403a", b: 40 }, { k: "Urlaub", t: "a", c: "#2a9fa0", b: 150 },
+    { k: "Sparen", t: "a", c: "#d99a1e", b: 200, save: true }, { k: "Sonstiges", t: "a", c: "#8c8c8c", b: 50 }];
+  var EXTRA = ["#e0703a", "#4a5fc1", "#9c3f2e", "#1f7a5c", "#c2559b", "#6b7d2a", "#3b8fc2", "#a0522d"];
+  var NEED = ["brauche ich", "vielleicht", "brauche ich nicht"];
+  var KEY = "tabellenheld-moni-v1";
+
+  function exampleState() {
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), d = function (mm, dd) { var x = new Date(y, mm, dd); return iso(x); };
+    var E = [], pm = m - 1 < 0 ? 11 : m - 1, py = m - 1 < 0 ? y - 1 : y;
+    function add(yy, mm, dd, t, c, w, a) { E.push({ d: iso(new Date(yy, mm, dd)), t: t, c: c, w: w, a: a }); }
+    // Vormonat komplett
+    [[1, "e", "Gehalt", "Gehalt", 2450], [1, "a", "Miete & Nebenkosten", "Miete", 850], [2, "a", "Sparen", "Dauerauftrag Tagesgeld", 200], [3, "a", "Strom & Heizung", "Abschlag Strom", 78],
+     [5, "a", "Lebensmittel", "Wocheneinkauf", 94.35], [6, "a", "Handy & Internet", "Handyvertrag", 19.99], [8, "a", "Auto & Tanken", "Tanken", 62.4], [12, "a", "Lebensmittel", "Wocheneinkauf", 87.1],
+     [14, "a", "Freizeit & Ausgehen", "Kino", 24], [15, "a", "Versicherungen", "Haftpflicht", 6.5], [19, "a", "Lebensmittel", "Wocheneinkauf", 102.8], [22, "a", "Kleidung", "Winterjacke", 89.9],
+     [24, "a", "Streaming & Abos", "Streamingdienst", 13.99], [26, "a", "Lebensmittel", "Wocheneinkauf", 91.2], [28, "a", "Auto & Tanken", "Tanken", 58]].forEach(function (x) { add(py, pm, x[0], x[1], x[2], x[3], x[4]); });
+    // aktueller Monat bis heute
+    var today = now.getDate();
+    [[1, "e", "Gehalt", "Gehalt", 2450], [1, "a", "Miete & Nebenkosten", "Miete", 850], [2, "a", "Sparen", "Dauerauftrag Tagesgeld", 200], [3, "a", "Strom & Heizung", "Abschlag Strom", 78],
+     [4, "a", "Lebensmittel", "Wocheneinkauf", 96.4], [6, "a", "Handy & Internet", "Handyvertrag", 19.99], [9, "a", "Auto & Tanken", "Tanken", 60.1], [11, "a", "Lebensmittel", "Wocheneinkauf", 84.75],
+     [13, "a", "Drogerie & Haushalt", "Drogerie", 23.6], [16, "a", "Freizeit & Ausgehen", "Essen gehen", 46], [18, "a", "Lebensmittel", "Wocheneinkauf", 99.3], [20, "a", "Geschenke", "Geburtstag Tom", 30],
+     [23, "a", "Streaming & Abos", "Streamingdienst", 13.99], [25, "a", "Lebensmittel", "Wocheneinkauf", 88]].forEach(function (x) { if (x[0] <= today) add(y, m, x[0], x[1], x[2], x[3], x[4]); });
+    return { v: 1, example: true, entries: E, budgets: {}, cats: [],
+      abos: [{ w: "Streamingdienst Filme", a: 13.99, r: 1, n: 1 }, { w: "Musik-Abo", a: 10.99, r: 1, n: 1 }, { w: "Fitnessstudio", a: 29.9, r: 1, n: 2, u: d(m + 2, 0) },
+             { w: "Handyvertrag", a: 19.99, r: 1, n: 0 }, { w: "Hausratversicherung", a: 89, r: 12, n: 0 }, { w: "Zeitschrift", a: 34, r: 3, n: 2 }] };
+  }
+  var state = null;
+  try { var raw = localStorage.getItem(KEY); if (raw) { var s0 = JSON.parse(raw); if (s0 && s0.v === 1 && Array.isArray(s0.entries)) state = s0; } } catch (e) {}
+  if (!state) state = exampleState();
+  function norm(s) { ["entries", "cats", "abos"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); if (!s.budgets || typeof s.budgets !== "object") s.budgets = {}; return s; }
+  norm(state);
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function touch() { save(); render(); }
+  var toastT;
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("on"); }, 2200); }
+
+  /* ---------- Kategorien ---------- */
+  var CATS = BASE;
+  function syncCats() { var own = state.cats.map(function (x, i) { return { k: x.k, t: x.t, c: EXTRA[i % EXTRA.length], b: 0, own: true }; });
+    var last = BASE[BASE.length - 1]; CATS = BASE.slice(0, -1).concat(own).concat([last]); }
+  function catOf(k) { return CATS.filter(function (c) { return c.k === k; })[0] || { k: k, t: "a", c: "#8c8c8c", b: 0 }; }
+  function budgetOf(c) { return c.k in state.budgets ? +state.budgets[c.k] || 0 : (c.b || 0); }
+
+  /* ---------- Monat ---------- */
+  var now = new Date(), cur = { y: now.getFullYear(), m: now.getMonth() };
+  function inMonth(e, y, m) { return e.d.slice(0, 7) === y + "-" + pad(m + 1); }
+  function monthTotals(y, m) {
+    var r = { inc: 0, out: 0, saved: 0, byCat: {} };
+    state.entries.forEach(function (e) { if (!inMonth(e, y, m)) return; var a = +e.a || 0;
+      if (e.t === "e") r.inc += a; else { r.out += a; r.byCat[e.c] = (r.byCat[e.c] || 0) + a; if (catOf(e.c).save) r.saved += a; } });
+    r.free = r.inc - r.out; return r;
+  }
+  function shift(n) { cur.m += n; if (cur.m < 0) { cur.m = 11; cur.y--; } if (cur.m > 11) { cur.m = 0; cur.y++; } render(); }
+  document.querySelectorAll(".mPrev").forEach(function (b) { b.addEventListener("click", function () { shift(-1); }); });
+  document.querySelectorAll(".mNext").forEach(function (b) { b.addEventListener("click", function () { shift(1); }); });
+
+  /* ---------- Reiter ---------- */
+  var tabs = document.querySelectorAll("nav.tabs button");
+  function go(name) {
+    document.querySelectorAll(".view").forEach(function (v) { v.classList.toggle("on", v.id === "v-" + name); });
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false"); });
+    window.scrollTo(0, 0); try { history.replaceState(null, "", "#" + name); } catch (e) {}
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-tab")); }); });
+
+  /* ---------- Moni ---------- */
+  var LEAVES = [], seed = 11;
+  function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  (function buildTree() {
+    var tips = [[116, 160], [86, 140], [140, 104], [206, 100], [228, 148], [262, 126], [168, 150], [150, 180], [196, 168], [130, 130], [186, 128], [100, 150], [244, 140]];
+    var g = $("leaves");
+    for (var i = 0; i < 46; i++) {
+      var t = tips[i % tips.length], ang = rnd() * Math.PI * 2, dist = 6 + rnd() * 24, x = t[0] + Math.cos(ang) * dist, y = t[1] + Math.sin(ang) * dist * .8 - 4;
+      var rot = Math.round(rnd() * 180), rx = 7 + rnd() * 3, ry = 10 + rnd() * 3;
+      var lf = el("g", { "class": "leaf" }, g);
+      el("ellipse", { cx: x.toFixed(1), cy: y.toFixed(1), rx: rx.toFixed(1), ry: ry.toFixed(1), fill: "url(#leafG)", stroke: "#24724a", "stroke-width": 1, transform: "rotate(" + rot + " " + x.toFixed(1) + " " + y.toFixed(1) + ")" }, lf);
+      LEAVES.push({ e: lf, o: rnd() });
+    }
+    LEAVES.sort(function (a, b) { return a.o - b.o; });
+    var fl = $("flowers");
+    [[118, 150], [140, 96], [208, 92], [230, 140], [262, 118], [170, 140], [92, 132]].forEach(function (p, i) {
+      var f = el("g", { "class": "flower off" }, fl);
+      for (var k = 0; k < 5; k++) { var a = k / 5 * Math.PI * 2; el("circle", { cx: (p[0] + Math.cos(a) * 4).toFixed(1), cy: (p[1] + Math.sin(a) * 4).toFixed(1), r: 3.2, fill: "#f6b6c8" }, f); }
+      el("circle", { cx: p[0], cy: p[1], r: 2.2, fill: "#f2c94c" }, f);
+    });
+  })();
+  function moni(T) {
+    var share = T.inc > 0 ? Math.max(0, T.free) / T.inc : (T.out > 0 ? 0 : .35);
+    var n = Math.round(LEAVES.length * Math.min(1, share * 1.25 + (T.inc > 0 && T.free >= 0 ? .08 : 0)));
+    if (T.inc > 0 && T.free < 0) n = 0;
+    LEAVES.forEach(function (l, i) { l.e.classList.toggle("off", i >= n); });
+    var rate = T.inc > 0 ? T.saved / T.inc : 0;
+    var fls = $("flowers").children, fn = rate >= .1 ? Math.min(fls.length, 2 + Math.round((rate - .1) * 40)) : 0;
+    for (var i = 0; i < fls.length; i++) fls[i].classList.toggle("off", i >= fn || T.free < 0);
+    var sad = T.inc > 0 && T.free < 0, worried = !sad && T.inc > 0 && share < .15;
+    $("trunk").setAttribute("stroke", sad ? "#8a7a68" : "#7a5236");
+    // Gesicht am Topf
+    var f = $("face"); f.textContent = ""; var cx = 170, cy = 256;
+    el("circle", { cx: cx - 14, cy: cy, r: 3.6, fill: "#3a1f14" }, f); el("circle", { cx: cx + 14, cy: cy, r: 3.6, fill: "#3a1f14" }, f);
+    el("circle", { cx: cx - 13, cy: cy - 1.2, r: 1.1, fill: "#fff" }, f); el("circle", { cx: cx + 15, cy: cy - 1.2, r: 1.1, fill: "#fff" }, f);
+    if (!sad) { el("ellipse", { cx: cx - 24, cy: cy + 7, rx: 5, ry: 3, fill: "#f6a9b0", opacity: .75 }, f); el("ellipse", { cx: cx + 24, cy: cy + 7, rx: 5, ry: 3, fill: "#f6a9b0", opacity: .75 }, f); }
+    var curve = sad ? -7 : worried ? 0 : 7;
+    el("path", { d: "M" + (cx - 8) + " " + (cy + 10) + " Q" + cx + " " + (cy + 10 + curve) + " " + (cx + 8) + " " + (cy + 10), stroke: "#3a1f14", "stroke-width": 2.6, fill: "none", "stroke-linecap": "round" }, f);
+    if (sad || worried) { el("path", { d: "M" + (cx - 19) + " " + (cy - 9) + " L" + (cx - 10) + " " + (cy - 7), stroke: "#3a1f14", "stroke-width": 2, "stroke-linecap": "round" }, f);
+      el("path", { d: "M" + (cx + 10) + " " + (cy - 7) + " L" + (cx + 19) + " " + (cy - 9), stroke: "#3a1f14", "stroke-width": 2, "stroke-linecap": "round" }, f); }
+    // gefallene Blätter am Boden
+    var fallen = $("fallen"); fallen.textContent = ""; var lost = LEAVES.length - n; seed = 5;
+    for (i = 0; i < Math.min(lost, 30); i++) { var x = 60 + rnd() * 120 + (i % 2 ? 90 : 0), y = 262 + rnd() * 18;
+      el("ellipse", { cx: x.toFixed(1), cy: y.toFixed(1), rx: 6, ry: 3, fill: sad ? "#b59a62" : "#7fb37f", opacity: .8, transform: "rotate(" + Math.round(rnd() * 60 - 30) + " " + x.toFixed(1) + " " + y.toFixed(1) + ")" }, fallen); }
+    // Sparglas
+    var goal = budgetOf(catOf("Sparen")) || 200, fill = Math.min(1, T.saved / goal), cg = $("coins"); cg.textContent = "";
+    var rows = Math.round(fill * 9);
+    for (var r = 0; r < rows; r++) for (var c = 0; c < 3; c++) {
+      var x2 = 272 + c * 17 + (r % 2 ? 6 : 0), y2 = 258 - r * 6;
+      el("ellipse", { cx: x2, cy: y2, rx: 8, ry: 3.4, fill: "#e9b949", stroke: "#b8862a", "stroke-width": 1 }, cg);
+    }
+    $("sun").setAttribute("opacity", sad ? .35 : .9);
+  }
+  function saying(T) {
+    var y = cur.y, m = cur.m, dim = new Date(y, m + 1, 0).getDate(), isCur = y === now.getFullYear() && m === now.getMonth();
+    if (T.inc <= 0 && T.out <= 0) return "Hallo, ich bin Moni! Buch dein Einkommen, dann wachsen mir Blätter.";
+    if (T.inc <= 0) return "Noch keine Einnahme gebucht. Trag dein Gehalt ein, dann sehe ich, wie viel übrig ist.";
+    var share = T.free / T.inc, f = eur(T.free);
+    if (T.free < 0) return "Minus! " + eur(-T.free) + " mehr ausgegeben als reingekommen.";
+    if (isCur) { var dayShare = now.getDate() / dim, spentShare = T.out / T.inc;
+      if (spentShare > dayShare + .15 && share < .5) return "Du gibst schneller aus, als der Monat vergeht. Noch " + f + " bis zum " + dim + ".";
+    }
+    if (share >= .6) return "Voll im Saft! Noch " + f + " übrig.";
+    if (share >= .35) return "Läuft gut. Noch " + f + " für den Rest des Monats.";
+    if (share >= .15) return "Die Blätter werden weniger. Noch " + f + ", gut einteilen.";
+    return "Fast kahl. Nur noch " + f + " bis Monatsende.";
+  }
+
+  /* ---------- Darstellung ---------- */
+  function renderMonthLabels() { document.querySelectorAll(".mLabel").forEach(function (s) { s.textContent = MONTHS[cur.m] + " " + cur.y; }); }
+  function renderStart() {
+    var T = monthTotals(cur.y, cur.m);
+    $("sIn").textContent = eur(T.inc); $("sOut").textContent = eur(T.out); $("sFree").textContent = eur(T.free);
+    $("freeBox").className = "stat " + (T.free < 0 ? "neg" : "pos");
+    var b = $("bubble"); b.textContent = saying(T);
+    if (T.inc > 0) b.appendChild(h("small", null, "Sparquote " + Math.round(T.saved / T.inc * 100) + " %" + (T.saved > 0 ? " · " + eur(T.saved) + " im Glas" : "")));
+    moni(T);
+    var isCur = cur.y === now.getFullYear() && cur.m === now.getMonth(), dim = new Date(cur.y, cur.m + 1, 0).getDate();
+    if (isCur && T.inc > 0) { var left = dim - now.getDate() + 1; $("dailyBox").hidden = false; $("dailyLbl").textContent = "Pro Tag noch (" + left + " Tage)"; $("daily").textContent = eur(Math.max(0, T.free) / left); }
+    else if (T.inc > 0) { $("dailyBox").hidden = false; $("dailyLbl").textContent = "Sparquote"; $("daily").textContent = Math.round(T.saved / T.inc * 100) + " %"; }
+    else $("dailyBox").hidden = true;
+    $("startSub").textContent = isCur ? "Heute ist der " + now.getDate() + ". " + MONTHS[cur.m] + "." : "Rückblick auf " + MONTHS[cur.m] + " " + cur.y + ".";
+    // Jahr
+    var yb = $("year"); yb.textContent = ""; var data = [], mx = 1;
+    for (var m = 0; m < 12; m++) { var t = monthTotals(cur.y, m); data.push(t); mx = Math.max(mx, t.inc, t.out); }
+    data.forEach(function (t, m) { var b2 = h("button", "ym" + (m === cur.m ? " cur" : "")); b2.type = "button"; b2.setAttribute("aria-label", MONTHS[m] + ": Einnahmen " + eur(t.inc) + ", Ausgaben " + eur(t.out));
+      var bars = h("span", "bars"); var i1 = h("i"); i1.style.height = (t.inc / mx * 100) + "%"; i1.style.background = "var(--good)"; var i2 = h("i"); i2.style.height = (t.out / mx * 100) + "%"; i2.style.background = "var(--bad)";
+      bars.appendChild(i1); bars.appendChild(i2); b2.appendChild(bars); b2.appendChild(h("small", null, MONTHS[m].slice(0, 1)));
+      b2.addEventListener("click", function () { cur.m = m; render(); }); yb.appendChild(b2); });
+    var yi = 0, yo = 0; data.forEach(function (t) { yi += t.inc; yo += t.out; });
+    $("yearSub").textContent = cur.y + ": " + eur(yi) + " rein, " + eur(yo) + " raus. Tippe auf einen Monat.";
+    $("exampleHint").hidden = !state.example;
+  }
+
+  var typ = "a", cat = "Lebensmittel";
+  function renderChips() {
+    var box = $("chips"); box.textContent = "";
+    var list = CATS.filter(function (c) { return c.t === typ; });
+    if (!list.some(function (c) { return c.k === cat; })) cat = typ === "e" ? "Gehalt" : "Lebensmittel";
+    list.forEach(function (x) {
+      var c = h("button", "chip dotted", x.k); c.type = "button"; c.style.setProperty("--dot", x.c); c.setAttribute("aria-pressed", x.k === cat ? "true" : "false");
+      c.addEventListener("click", function () { cat = x.k; renderChips(); }); box.appendChild(c);
+      if (x.own) { var d = h("button", "chip chipDel", "✕"); d.type = "button"; d.setAttribute("aria-label", "Kategorie " + x.k + " entfernen"); d.addEventListener("click", function () { removeCat(x.k); }); box.appendChild(d); }
+    });
+    var add = h("button", "chip chipAdd", "+ Eigene Kategorie"); add.type = "button"; add.addEventListener("click", function () { $("catNew").hidden = false; $("catName").focus(); }); box.appendChild(add);
+  }
+  function removeCat(k) { var n = 0; state.entries.forEach(function (e) { if (e.c === k) { e.c = e.t === "e" ? "Sonstige Einnahmen" : "Sonstiges"; n++; } });
+    state.cats = state.cats.filter(function (c) { return c.k !== k; }); delete state.budgets[k]; syncCats(); touch(); toast(n ? "Kategorie entfernt. " + n + " Buchung(en) jetzt unter Sonstiges." : "Kategorie entfernt."); }
+  $("catAdd").addEventListener("click", function () { var n = $("catName").value.trim().replace(/\s+/g, " ").slice(0, 24); if (!n) { $("catName").focus(); return; }
+    if (CATS.some(function (c) { return c.k.toLowerCase() === n.toLowerCase(); })) { toast("Die Kategorie gibt es schon."); return; }
+    if (state.cats.length >= 15) { toast("Maximal 15 eigene Kategorien."); return; }
+    state.cats.push({ k: n, t: typ }); syncCats(); cat = n; $("catName").value = ""; $("catNew").hidden = true; touch(); toast("Kategorie „" + n + "“ angelegt"); });
+  $("catName").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); $("catAdd").click(); } });
+  $("catCancel").addEventListener("click", function () { $("catName").value = ""; $("catNew").hidden = true; });
+  document.querySelectorAll(".seg button").forEach(function (b) { b.addEventListener("click", function () { typ = b.getAttribute("data-t");
+    document.querySelectorAll(".seg button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); renderChips(); }); });
+
+  function renderEntries() {
+    var ul = $("entryList"); ul.textContent = "";
+    var list = state.entries.map(function (e, i) { return [e, i]; }).filter(function (p) { return inMonth(p[0], cur.y, cur.m); }).sort(function (a, b) { return a[0].d < b[0].d ? 1 : a[0].d > b[0].d ? -1 : b[1] - a[1]; });
+    var last = "";
+    list.forEach(function (p) { var e = p[0], idx = p[1];
+      if (e.d !== last) { last = e.d; var dd = e.d.split("-"); ul.appendChild(h("li", "dayHead", new Date(+dd[0], +dd[1] - 1, +dd[2]).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" }))); }
+      var c = catOf(e.c), li = h("li"); var d = h("span", "dot", c.k.charAt(0)); d.style.background = c.c; li.appendChild(d);
+      var w = h("span", "what"); w.appendChild(h("span", null, e.w || e.c)); w.appendChild(h("small", null, e.c)); li.appendChild(w);
+      li.appendChild(h("span", "amt" + (e.t === "e" ? " in" : ""), (e.t === "e" ? "+" : "−") + eur(+e.a)));
+      var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", "Buchung " + (e.w || e.c) + " löschen");
+      del.addEventListener("click", function () { state.entries.splice(idx, 1); touch(); toast("Buchung gelöscht"); }); li.appendChild(del); ul.appendChild(li); });
+    $("entryEmpty").hidden = list.length > 0;
+  }
+
+  var editing = false;
+  function renderBudget() {
+    var T = monthTotals(cur.y, cur.m), box = $("budList"); box.textContent = ""; var plan = 0, over = 0;
+    var list = CATS.filter(function (c) { return c.t === "a"; });
+    if (!editing) list = list.filter(function (c) { return budgetOf(c) > 0 || (T.byCat[c.k] || 0) > 0; }).sort(function (a, b) {
+      var ra = budgetOf(a) > 0 ? (T.byCat[a.k] || 0) / budgetOf(a) : 9, rb = budgetOf(b) > 0 ? (T.byCat[b.k] || 0) / budgetOf(b) : 9; return rb - ra; });
+    list.forEach(function (c) {
+      var b = budgetOf(c), s = T.byCat[c.k] || 0; plan += b; if (b > 0 && s > b && !c.save) over++;
+      var row = h("div", "bud"), top = h("div", "top"), name = h("span", null, c.k); top.appendChild(name);
+      var info = h("small", null, eur(s) + (b > 0 ? " von " + eur(b) : " · kein Budget"));
+      if (b > 0 && s > b && !c.save) { var p = h("span", "pill over", "+" + eur(s - b)); info.prepend(p, " "); }
+      if (c.save && b > 0) info.textContent = eur(s) + " von " + eur(b) + (s >= b ? " · Ziel erreicht" : "");
+      top.appendChild(info); row.appendChild(top);
+      var tr = h("div", "track"), bar = h("i"); var r = b > 0 ? s / b : (s > 0 ? 1 : 0);
+      bar.style.width = Math.min(100, r * 100) + "%"; bar.style.background = c.save ? "var(--gold)" : r > 1 ? "var(--bad)" : r > .85 ? "#e0703a" : c.c; tr.appendChild(bar); row.appendChild(tr);
+      if (editing) { var ed = h("div", "edit"), inp = document.createElement("input"); inp.type = "text"; inp.inputMode = "decimal"; inp.value = b ? String(b).replace(".", ",") : ""; inp.placeholder = "0"; inp.setAttribute("aria-label", "Budget " + c.k);
+        inp.addEventListener("change", function () { var v = num(inp.value); state.budgets[c.k] = v > 0 ? Math.round(v * 100) / 100 : 0; save(); });
+        ed.appendChild(inp); ed.appendChild(h("small", null, "€ pro Monat")); row.appendChild(ed); }
+      box.appendChild(row);
+    });
+    if (!list.length) box.appendChild(h("p", "empty", "Noch keine Budgets. Tippe auf „Budgets bearbeiten“."));
+    $("bPlan").textContent = eur(plan); $("bOut").textContent = eur(T.out); $("bOver").textContent = over ? over + "×" : "0";
+    $("bOverBox").className = "stat " + (over ? "neg" : "pos"); $("editBud").textContent = editing ? "Fertig" : "Budgets bearbeiten";
+  }
+  $("editBud").addEventListener("click", function () { editing = !editing; if (!editing) touch(); else renderBudget(); });
+
+  function renderAbos() {
+    var ul = $("aboList"); ul.textContent = ""; var pm = 0, pot = 0;
+    state.abos.forEach(function (a, idx) { var mon = (+a.a || 0) / (+a.r || 1); pm += mon; if (a.n === 2) pot += mon * 12;
+      var li = h("li"); var w = h("span", "what"); w.appendChild(h("span", null, a.w));
+      var rh = { 1: "monatlich", 3: "vierteljährlich", 6: "halbjährlich", 12: "jährlich" }[a.r] || "monatlich";
+      var sub = eur(+a.a) + " " + rh + (a.r > 1 ? " · " + eur(mon) + "/Monat" : "");
+      if (a.u) { var p = a.u.split("-"); var ud = new Date(+p[0], +p[1] - 1, +p[2]); var days = Math.round((ud - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);
+        sub += " · kündbar bis " + ud.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) + (days >= 0 && days <= 30 ? " (in " + days + " Tagen!)" : ""); }
+      w.appendChild(h("small", null, sub)); li.appendChild(w);
+      var n = h("button", "need n" + (a.n || 0), NEED[a.n || 0]); n.type = "button"; n.setAttribute("aria-label", a.w + ": " + NEED[a.n || 0] + ". Tippen zum Ändern.");
+      n.addEventListener("click", function () { a.n = ((a.n || 0) + 1) % 3; touch(); }); li.appendChild(n);
+      var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", "Abo " + a.w + " löschen"); del.addEventListener("click", function () { state.abos.splice(idx, 1); touch(); toast("Abo gelöscht"); }); li.appendChild(del);
+      ul.appendChild(li); });
+    $("aboEmpty").hidden = state.abos.length > 0;
+    $("aMonth").textContent = eur(pm); $("aYear").textContent = eur(pm * 12); $("aCount").textContent = String(state.abos.length); $("aPot").textContent = eur(pot);
+    $("aPotText").textContent = pot > 0 ? "So viel bleibt im Jahr mehr übrig, wenn du die rot markierten Abos kündigst." : "Markiere Abos mit „brauche ich nicht“, dann siehst du hier, was du sparen kannst.";
+  }
+
+  function render() { syncCats(); renderMonthLabels(); renderChips(); renderStart(); renderEntries(); renderBudget(); renderAbos(); }
+
+  /* ---------- Eingaben ---------- */
+  $("eDate").value = iso(now);
+  $("entryForm").addEventListener("submit", function (e) { e.preventDefault(); var a = num($("eAmt").value);
+    if (!(a > 0)) { $("eAmt").focus(); toast("Bitte einen Betrag eintragen."); return; }
+    var d = /^\d{4}-\d{2}-\d{2}$/.test($("eDate").value) ? $("eDate").value : iso(now);
+    state.entries.push({ d: d, t: typ, c: cat, w: $("eWhat").value.trim(), a: Math.round(a * 100) / 100 });
+    var p = d.split("-"); cur.y = +p[0]; cur.m = +p[1] - 1;
+    $("eAmt").value = ""; $("eWhat").value = ""; touch(); toast((typ === "e" ? "Einnahme " : "Ausgabe ") + eur(a) + " gebucht"); });
+  $("aboForm").addEventListener("submit", function (e) { e.preventDefault(); var w = $("aWhat").value.trim(), a = num($("aAmt").value);
+    if (!w) { $("aWhat").focus(); toast("Wie heißt das Abo?"); return; } if (!(a > 0)) { $("aAmt").focus(); toast("Bitte einen Betrag eintragen."); return; }
+    state.abos.push({ w: w, a: Math.round(a * 100) / 100, r: +$("aRhythm").value || 1, n: 0, u: /^\d{4}-\d{2}-\d{2}$/.test($("aUntil").value) ? $("aUntil").value : "" });
+    $("aWhat").value = ""; $("aAmt").value = ""; $("aUntil").value = ""; touch(); toast("Abo hinzugefügt"); });
+  $("clearExample").addEventListener("click", function () { state = norm({ v: 1, example: false, entries: [], budgets: state.budgets, cats: state.cats, abos: [] }); save(); cur = { y: now.getFullYear(), m: now.getMonth() }; render();
+    toast("Beispiele gelöscht. Buch jetzt dein Einkommen."); go("buchen"); document.querySelector('.seg button[data-t="e"]').click(); $("eAmt").focus(); });
+  $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
+  $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
+  $("resetYes").addEventListener("click", function () { state = norm({ v: 1, example: false, entries: [], budgets: {}, cats: [], abos: [] }); save(); render(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
+  $("exportBtn").addEventListener("click", function () {
+    try { var blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" }); var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "moni-sicherung.json"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast("Sicherung gespeichert"); }
+    catch (e) { toast("Speichern hat nicht geklappt."); } });
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
+    rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || !Array.isArray(s.entries)) throw 0; s.example = false; state = norm(s); save(); render(); toast("Sicherung geladen"); }
+      catch (err) { toast("Diese Datei ist keine Moni-Sicherung."); } e.target.value = ""; }; rd.readAsText(f); });
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
+  $("installBtn").addEventListener("click", function () { if (!deferred) return; deferred.prompt(); deferred = null; $("installBtn").hidden = true; });
+
+  render();
+  var hash = (location.hash || "").slice(1); if (["start", "buchen", "budget", "abos", "mehr"].indexOf(hash) >= 0) go(hash);
+  if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
+})();
+</script>
+</body>
+</html>

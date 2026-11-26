@@ -384,7 +384,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   if (!state) state = exampleState();
   ["items", "gifts", "dates", "opened", "cats"].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
-  function touch() { if (state.example) { state.example = false; } save(); render(); }
+  function touch() { save(); render(); }
 
   var toastT;
   function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("on"); }, 2200); }
@@ -695,7 +695,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   function render() { syncCats(); renderChips(); renderStart(); renderBudget(); renderGifts(); renderDates(); renderDoors(); }
 
   /* ---------- Eingaben ---------- */
-  $("budget").addEventListener("input", function (e) { var v = num(e.target.value); state.budget = v > 0 ? v : 0; state.example = false; save(); renderStart(); renderBudget(); $("exampleHint").hidden = true; });
+  $("budget").addEventListener("input", function (e) { var v = num(e.target.value); state.budget = v > 0 ? v : 0; save(); renderStart(); renderBudget(); });
   $("budget").addEventListener("blur", renderBudget);
   $("expForm").addEventListener("submit", function (e) { e.preventDefault(); var a = num($("expAmt").value);
     if (!(a > 0)) { $("expAmt").focus(); toast("Bitte einen Betrag eintragen."); return; }
