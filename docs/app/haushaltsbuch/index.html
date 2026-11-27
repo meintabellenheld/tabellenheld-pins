@@ -172,6 +172,13 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
 .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 9; max-width: calc(100% - 32px); text-align: center; }
 .toast.on { opacity: 1; transform: translateX(-50%); }
 @media (prefers-reduced-motion: reduce) { .view.on { animation: none; } .leaf, .flower, .track i, .coinJar { transition: none; } }
+
+.thsStand { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+#thsHinweis { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(86px + env(safe-area-inset-bottom)); width: calc(100% - 32px); max-width: 488px; z-index: 9;
+  background: var(--card); color: var(--ink); border-radius: 16px; padding: 12px 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .22); display: grid; gap: 10px; font-size: 14px; }
+#thsHinweis p { margin: 0; }
+#thsHinweis div { display: flex; gap: 8px; }
+#thsHinweis .btn { flex: 1; padding: 9px 12px; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -318,11 +325,11 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
     </div>
     <div class="card">
       <h2>Deine Daten</h2>
-      <p style="margin:0 0 10px;font-size:14px">Alles, was du einträgst, bleibt nur in diesem Browser auf deinem Gerät. Es wird nichts an uns oder andere gesendet. Löschst du die Browserdaten, sind auch die Einträge weg. Mit einer Sicherung kannst du sie auf ein anderes Gerät mitnehmen.</p>
+      <p style="margin:0 0 10px;font-size:14px">Alles, was du einträgst, bleibt nur auf deinem Gerät. Es wird nichts an uns oder andere gesendet. Bei Handywechsel oder gelöschten Browserdaten sind die Einträge weg, darum ab und zu sichern: Schick dir die Datei per Mail oder leg sie in deine Dateien. Mit „Daten laden“ holst du sie zurück.</p>
       <div class="btns">
-        <button class="btn ghost" type="button" id="exportBtn">Sicherung herunterladen</button>
-        <button class="btn ghost" type="button" id="importBtn">Sicherung laden</button>
-        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button class="btn ghost" type="button" id="exportBtn">Daten sichern</button>
+        <button class="btn ghost" type="button" id="importBtn">Daten laden</button>
+        <input type="file" id="importFile" accept="application/json,.json,text/plain,.txt" hidden>
         <button class="btn ghost" type="button" id="resetBtn">Alles löschen</button>
         <div class="confirm" id="resetConfirm"><p style="margin:0;font-size:14px">Wirklich alle Einträge löschen? Das lässt sich nicht rückgängig machen.</p><button class="btn" type="button" id="resetYes" style="background:var(--bad);color:#fff">Ja, alles löschen</button><button class="btn ghost" type="button" id="resetNo">Abbrechen</button></div>
       </div>
@@ -345,6 +352,85 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
 </div></nav>
 <div class="toast" id="toast" role="status"></div>
 
+<script>
+/* Tabellenheld-Sicherung v1: Daten sichern, Erinnerung, Umzug. Alles bleibt auf dem Gerät. */
+(function () {
+  "use strict";
+  var KEY = "tabellenheld-moni-v1", FILE = "moni-sicherung", LABEL = "Moni", MK = KEY + "-sicherung", DAY = 864e5;
+  function get() { try { return JSON.parse(localStorage.getItem(MK)) || {}; } catch (e) { return {}; } }
+  function put(m) { try { localStorage.setItem(MK, JSON.stringify(m)); } catch (e) {} }
+  function raw() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
+  function real() { try { var s = JSON.parse(raw()); return !!(s && s.v === 1 && !s.example); } catch (e) { return false; } }
+  function fp() { var s = raw(), h = 5381; for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return s.length + ":" + h; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function de(ms) { var d = new Date(ms); return pad(d.getDate()) + "." + pad(d.getMonth() + 1) + "." + d.getFullYear(); }
+  function say(msg) { var t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("on"); setTimeout(function () { t.classList.remove("on"); }, 2600); }
+
+  /* Umzug: Daten von der alten Adresse übernehmen */
+  var um = /^#umzug=([A-Za-z0-9_-]+)$/.exec(location.hash || ""), umOk = false;
+  if (um) {
+    try {
+      var b = um[1].replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "=";
+      var p = JSON.parse(decodeURIComponent(escape(atob(b))));
+      if (p && p.key === KEY && typeof p.data === "string") {
+        var d = JSON.parse(p.data), have = raw();
+        if (d && d.v === 1 && (!real() || have === p.data || confirm("Auf diesem Gerät sind schon Einträge. Durch die Einträge von der alten Adresse ersetzen?"))) {
+          localStorage.setItem(KEY, p.data); var mm = get(); if (p.last) mm.last = p.last; mm.seit = mm.seit || Date.now(); put(mm); umOk = true;
+        }
+      }
+    } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  }
+
+  function stand() {
+    var el = document.getElementById("thsStand"); if (!el) return; var m = get();
+    el.textContent = m.last ? "Letzte Sicherung: " + de(m.last) + "." : "Noch keine Sicherung.";
+  }
+  function done(toast) { var m = get(); m.last = Date.now(); m.fp = fp(); put(m); stand(); var h = document.getElementById("thsHinweis"); if (h) h.hidden = true; (toast || say)("Sicherung gespeichert"); }
+  function laden(text, fn, toast) {
+    var blob = new Blob([text], { type: "application/json" }), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = fn; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); done(toast);
+  }
+  /* Von der App aufgerufen: THS.sichern(JSON-Text, toast) */
+  function sichern(text, toast) {
+    var t = new Date(), fn = FILE + "-" + t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate()) + ".json", f = null;
+    var handy = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+    try { f = new File([text], fn, { type: "application/json" }); } catch (e) {}
+    try {
+      if (handy && f && navigator.canShare && navigator.canShare({ files: [f] })) {
+        navigator.share({ files: [f], title: LABEL + ": Sicherung" }).then(function () { done(toast); }).catch(function (err) {
+          if (err && err.name === "AbortError") return; try { laden(text, fn, toast); } catch (e) { (toast || say)("Speichern hat nicht geklappt."); } });
+        return;
+      }
+      laden(text, fn, toast);
+    } catch (e) { (toast || say)("Speichern hat nicht geklappt."); }
+  }
+  window.THS = { sichern: sichern };
+
+  function hinweis() {
+    if (window.self !== window.top) return;           /* nicht in der Vorschau auf der Verkaufsseite */
+    var m = get(), now = Date.now();
+    if (!real()) return;
+    if (!m.seit) { m.seit = now; m.fp = fp(); put(m); }
+    if (fp() === m.fp) return;                          /* seit Start bzw. letzter Sicherung nichts geändert */
+    var faellig = m.last ? now - m.last > 30 * DAY : now - m.seit > 3 * DAY;
+    if (!faellig || (m.spaeter && now < m.spaeter)) return;
+    var h = document.createElement("div"); h.id = "thsHinweis"; h.setAttribute("role", "status");
+    h.innerHTML = '<p>' + (m.last ? "Deine letzte Sicherung ist über einen Monat alt." : "Deine Einträge liegen nur auf diesem Gerät.") +
+      ' Einmal sichern, dann gehen sie bei Handywechsel nicht verloren.</p><div><button type="button" class="btn" id="thsJetzt">Jetzt sichern</button><button type="button" class="btn ghost" id="thsSpaeter">Später</button></div>';
+    document.body.appendChild(h);
+    var nav = document.querySelector("nav.tabs"); if (nav) h.style.bottom = (nav.offsetHeight + 10) + "px";
+    document.getElementById("thsJetzt").addEventListener("click", function () { var b = document.getElementById("exportBtn"); if (b) b.click(); });
+    document.getElementById("thsSpaeter").addEventListener("click", function () { var m2 = get(); m2.spaeter = Date.now() + 7 * DAY; put(m2); h.hidden = true; });
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var b = document.getElementById("exportBtn");
+    if (b && !document.getElementById("thsStand")) { var p = document.createElement("p"); p.id = "thsStand"; p.className = "thsStand"; b.parentNode.parentNode.insertBefore(p, b.parentNode); }
+    stand(); if (umOk) say("Deine Daten sind umgezogen."); else hinweis();
+  });
+})();
+</script>
 <script>
 (function () {
   "use strict";
@@ -623,10 +709,7 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
   $("resetYes").addEventListener("click", function () { state = norm({ v: 1, example: false, entries: [], budgets: {}, cats: [], abos: [] }); save(); render(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
-  $("exportBtn").addEventListener("click", function () {
-    try { var blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" }); var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "moni-sicherung.json"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast("Sicherung gespeichert"); }
-    catch (e) { toast("Speichern hat nicht geklappt."); } });
+  $("exportBtn").addEventListener("click", function () { THS.sichern(JSON.stringify(state, null, 1), toast); });
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
     rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || !Array.isArray(s.entries)) throw 0; s.example = false; state = norm(s); save(); render(); toast("Sicherung geladen"); }
