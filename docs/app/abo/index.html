@@ -2,9 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Abo- und Fixkosten-Tracker 2027</title>
-<meta name="description" content="Bonus-App zum Tabellenheld Abo- und Fixkosten-Tracker 2027: Verträge, Fristen, Jahresplan und Sparpotenzial. Alle Daten bleiben auf deinem Gerät.">
+<meta name="description" content="Bonus-App zum Tabellenheld Abo- und Fixkosten-Tracker 2027: Verträge per Foto oder PDF auslesen, Fristen, Jahresplan und Sparpotenzial. Alle Daten bleiben auf deinem Gerät.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F1F6F7">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -127,6 +128,45 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 .mini { font-size: 12.5px; padding: 6px 10px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); cursor: pointer; font-weight: 600; }
 .mini.kill { border-color: var(--bad); color: var(--bad); }
 .dl li .what span { font-weight: 600; }
+#ctrForm .field { align-content: start; }
+.scanTop { flex: none; border-color: var(--accent); color: var(--accent); }
+.scan { display: grid; gap: 8px; background: var(--soft); border-radius: 14px; padding: 12px; }
+.scanBtn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.scanBtn svg { width: 22px; height: 22px; flex: none; }
+.scanNote { display: flex; gap: 7px; align-items: flex-start; margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.scanNote svg { width: 15px; height: 15px; flex: none; margin-top: 1px; color: var(--good); }
+.scanProg { display: grid; gap: 2px; font-size: 13px; font-weight: 600; }
+.scanProg .progress { margin-top: 4px; }
+.scanProg.wait .progress i { width: 35% !important; animation: slide 1.2s ease-in-out infinite alternate; }
+@keyframes slide { from { margin-left: 0; } to { margin-left: 65%; } }
+.scanRes { display: grid; gap: 6px; }
+.docChip { display: flex; align-items: center; gap: 8px; justify-content: space-between; background: var(--card); border-radius: 10px; padding: 7px 8px 7px 10px; font-size: 13px; font-weight: 600; min-width: 0; }
+.docChip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scanSum { margin: 0; font-size: 13.5px; }
+.scanHints { margin: 0; padding-left: 18px; font-size: 13px; color: var(--warn-ink); display: grid; gap: 3px; }
+.scanHints:empty { display: none; }
+.scanTxt summary, .more summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent); padding: 4px 0; }
+.scanTxt pre { white-space: pre-wrap; word-break: break-word; font-size: 11.5px; max-height: 220px; overflow: auto; background: var(--card); border-radius: 10px; padding: 8px; margin: 6px 0 0; }
+.more { display: grid; gap: 10px; }
+.more[open] { padding-bottom: 2px; }
+.more .row { margin-top: 8px; }
+.src { font-size: 11.5px; color: var(--muted); line-height: 1.3; overflow-wrap: anywhere; }
+.src:empty { display: none; }
+input.auto, select.auto { border-color: var(--gold); background: var(--hint-bg); }
+.ctr small.meta { color: var(--muted); }
+.mini { white-space: nowrap; }
+.docBtn { border-color: var(--accent); color: var(--accent); padding: 5px 9px; line-height: 0; }
+.docBtn svg { width: 17px; height: 17px; }
+.viewer { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .82); display: grid; grid-template-rows: auto 1fr; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); }
+.viewer[hidden] { display: none; }
+.viewer .bar { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding-bottom: 8px; }
+.viewer .bar .mini { background: #fff; color: #1b2a2e; border-color: #fff; }
+.viewer .bar .mini.kill { color: #b5483b; }
+.viewer .body { overflow: auto; display: grid; place-items: start center; }
+.viewer img { max-width: 100%; height: auto; border-radius: 8px; background: #fff; }
+.viewer .pdfBox { background: var(--card); color: var(--ink); border-radius: 16px; padding: 18px; max-width: 420px; display: grid; gap: 10px; margin-top: 10vh; }
+.store { font-size: 13.5px; margin: 0; }
+.store .progress { margin-top: 6px; }
 
 
 .thsStand { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -158,14 +198,26 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   </section>
 
   <section class="view" id="v-vertraege" aria-label="Verträge">
-    <header class="top"><div><h1>Verträge</h1><p class="sub">Alles, was regelmäßig abgebucht wird.</p></div></header>
+    <header class="top"><div><h1>Verträge</h1><p class="sub">Alles, was regelmäßig abgebucht wird.</p></div><button class="mini scanTop" type="button" id="scanTop">+ Vertrag scannen</button></header>
     <div class="card"><div class="chips" id="fil" role="group" aria-label="Filter"></div><div id="ctrList" style="margin-top:6px"></div><p class="empty" id="ctrEmpty" hidden>Nichts in dieser Liste.</p>
       <p class="empty" style="text-align:left;margin-top:8px">„Brauche ich das?“ antippen: Ja → Vielleicht → Nein. Nein-Verträge zeigen dein Sparpotenzial.</p></div>
     <form class="card" id="ctrForm" autocomplete="off">
       <h2>Vertrag eintragen</h2>
+      <div class="scan" id="scanBox">
+        <button class="btn scanBtn" type="button" id="scanBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M8 9h8M8 12h8M8 15h5"/></svg>Vertrag hochladen und auslesen</button>
+        <input type="file" id="scanFile" accept="image/*,application/pdf,.pdf" hidden>
+        <p class="scanNote"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Foto oder PDF. Dein Vertrag bleibt auf diesem Gerät: Die App liest ihn direkt hier im Browser, nichts wird hochgeladen.</span></p>
+        <div class="scanProg" id="scanProg" hidden><span id="scanStep">Lese Vertrag …</span><div class="progress"><i id="scanBar"></i></div></div>
+        <div class="scanRes" id="scanRes" hidden>
+          <div class="docChip"><span id="scanDoc"></span><button type="button" class="mini" id="scanDrop">Verwerfen</button></div>
+          <p class="scanSum" id="scanSum"></p>
+          <ul class="scanHints" id="scanHints"></ul>
+          <details class="scanTxt"><summary>Erkannten Text ansehen</summary><pre id="scanText"></pre></details>
+        </div>
+      </div>
       <div class="row">
-        <div class="field"><label for="cN">Was</label><input id="cN" maxlength="40" placeholder="z. B. Streaming"></div>
-        <div class="field small"><label for="cA">Betrag</label><input id="cA" inputmode="decimal" placeholder="0,00"></div>
+        <div class="field"><label for="cN">Was</label><input id="cN" maxlength="40" placeholder="z. B. Streaming"><small class="src" data-for="cN"></small></div>
+        <div class="field small"><label for="cA">Betrag</label><input id="cA" inputmode="decimal" placeholder="0,00"><small class="src" data-for="cA"></small></div>
       </div>
       <div class="row">
         <div class="field"><label for="cR">Rhythmus</label><select id="cR"></select></div>
@@ -173,9 +225,21 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       </div>
       <div class="row">
         <div class="field"><label for="cM">Erste Abbuchung 2027</label><select id="cM"></select></div>
-        <div class="field"><label for="cK">Kündbar bis</label><input type="date" id="cK"></div>
+        <div class="field"><label for="cK">Kündbar bis</label><input type="date" id="cK"><small class="src" data-for="cK"></small></div>
       </div>
-      <button class="btn" type="submit">Hinzufügen</button>
+      <details class="more" id="cMore"><summary>Laufzeit und Kündigungsfrist</summary>
+        <div class="row">
+          <div class="field"><label for="cB">Vertragsbeginn</label><input type="date" id="cB"><small class="src" data-for="cB"></small></div>
+          <div class="field small"><label for="cL">Laufzeit</label><input id="cL" inputmode="numeric" maxlength="3" placeholder="Monate"><small class="src" data-for="cL"></small></div>
+        </div>
+        <div class="row">
+          <div class="field small"><label for="cF">Kündigungsfrist</label><input id="cF" inputmode="numeric" maxlength="2" placeholder="z. B. 1"></div>
+          <div class="field"><label for="cFu">Einheit</label><select id="cFu"><option value="m">Monate</option><option value="w">Wochen</option><option value="t">Tage</option></select></div>
+        </div>
+        <small class="src" data-for="cF"></small>
+        <p class="empty" style="text-align:left;margin:2px 0 0">Mit Beginn, Laufzeit und Frist rechnet die App „Kündbar bis“ selbst aus.</p>
+      </details>
+      <button class="btn" type="submit" id="cSubmit">Hinzufügen</button>
     </form>
   </section>
 
@@ -195,7 +259,10 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 
   <section class="view" id="v-mehr" aria-label="Mehr">
     <header class="top"><div><h1>Mehr</h1><p class="sub">Einrichten, sichern, Hilfe.</p></div></header>
-    
+        <div class="card"><h2>Gespeicherte Verträge</h2><div class="store" id="docStore">Noch keine Verträge gespeichert.</div>
+      <p class="empty" style="text-align:left;margin-top:8px">Hochgeladene Verträge liegen nur auf diesem Gerät und sind in „Daten sichern“ mit drin. Die Texterkennung läuft hier im Browser, dafür lädt die App beim ersten Mal einmalig ca. 5 MB von unserer Seite. Dein Vertrag selbst wird nie hochgeladen.</p></div>
+    <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewTitle"><div class="bar"><b id="viewTitle" style="color:#fff;margin-right:auto;align-self:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b><button class="mini" type="button" id="viewSave">Speichern</button><button class="mini kill" type="button" id="viewDel">Entfernen</button><button class="mini" type="button" id="viewClose">Schließen</button></div><div class="body" id="viewBody"></div></div>
+
     <div class="card">
       <h2>Als App auf den Startbildschirm</h2>
       <button class="btn" type="button" id="installBtn" hidden>Jetzt installieren</button>
@@ -221,7 +288,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       <a href="../../index.html#datenschutz">Datenschutz <span aria-hidden="true">›</span></a>
       <a href="../../index.html">Tabellenheld Vorlagen <span aria-hidden="true">›</span></a>
     </div>
-    <p class="foot">Bonus zum Tabellenheld Abo- und Fixkosten-Tracker 2027. Planungshilfe, keine Finanz- oder Rechtsberatung. Kündigungsfristen bitte im Vertrag prüfen.</p>
+    <p class="foot">Bonus zum Tabellenheld Abo- und Fixkosten-Tracker 2027. Planungshilfe, keine Finanz- oder Rechtsberatung. Erkannte Werte sind Vorschläge, Kündigungsfristen bitte im Vertrag prüfen.</p>
   </section>
 
 </div>
@@ -454,7 +521,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     var ul = $("soon"); ul.innerHTML = ""; $("soonEmpty").hidden = soon.length > 0;
     soon.forEach(function (x) { var li = h("li"), w = h("div", "what"), d = parseIso(x.k), days = Math.round((d - t0) / 864e5);
       w.appendChild(h("span", null, x.n)); w.appendChild(h("small", null, "Kündbar bis " + fmt(d) + (days === 0 ? " (heute!)" : " (noch " + days + " Tage)"))); li.appendChild(w); li.appendChild(h("span", "amt", eur(perMonth(x)) + "/Mon.")); ul.appendChild(li); });
-    renderList(t0); renderYear(T); renderKilled();
+    renderList(t0); renderYear(T); renderKilled(); DOCS.sync();
   }
   function renderList(t0) {
     var fb = $("fil"); fb.innerHTML = "";
@@ -465,15 +532,22 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       var d = h("div", "ctr" + (x.b === 2 ? " no" : "")), left = h("div");
       left.appendChild(h("div", "n", x.n));
       var kd = x.k ? parseIso(x.k) : null, soon = kd && kd >= t0 && (kd - t0) / 864e5 <= 30;
-      left.appendChild(h("small", soon ? "soon" : null, (RH[x.r] ? RH[x.r][1] : "") + " · " + (CATS[x.c] || "Sonstiges") + (kd ? " · kündbar bis " + fmt(kd) : ""))); d.appendChild(left);
+      left.appendChild(h("small", soon ? "soon" : null, (RH[x.r] ? RH[x.r][1] : "") + " · " + (CATS[x.c] || "Sonstiges") + (kd ? " · kündbar bis " + fmt(kd) : "")));
+      var meta = [];
+      if (x.lz === 0) meta.push("ohne Mindestlaufzeit"); else if (x.lz > 0) meta.push(x.lz + " Monate Laufzeit");
+      if (x.fr && x.fr.v) meta.push("Frist " + x.fr.v + " " + FU[x.fr.u || "m"][x.fr.v === 1 ? 0 : 1]);
+      if (x.bg) meta.push("seit " + fmt(parseIso(x.bg)));
+      if (meta.length) left.appendChild(h("small", "meta", meta.join(" · ")));
+      d.appendChild(left);
       var amt = h("div", "amt", eur(x.a)); if (x.r !== "m") amt.appendChild(h("small", null, "= " + eur(perMonth(x)) + "/Mon.")); d.appendChild(amt);
       var acts = h("div", "acts");
       var nb = h("button", "status " + ["s1", "s3", "s2"][x.b || 0], "Brauche ich: " + NEED[x.b || 0]); nb.type = "button";
       nb.addEventListener("click", function () { x.b = ((x.b || 0) + 1) % 3; touch(); }); acts.appendChild(nb);
       var kb = h("button", "mini kill", "Gekündigt ✓"); kb.type = "button"; kb.setAttribute("aria-label", x.n + " als gekündigt markieren");
       kb.addEventListener("click", function () { x.x = isoOf(todayD()); touch(); toast(x.n + " gekündigt. " + eur(perMonth(x) * 12, 0) + " pro Jahr gespart!"); if (totals().potM <= 0) confetti(["#1F6F78", "#E0A23B", "#3FA08C", "#ffffff"]); }); acts.appendChild(kb);
+      if (x.f && DOCS.has(x.f)) { var db = h("button", "mini docBtn"); db.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>'; db.type = "button"; db.title = "Vertrag ansehen"; db.setAttribute("aria-label", "Vertrag von " + x.n + " ansehen"); db.addEventListener("click", function () { showDoc(x); }); acts.appendChild(db); }
       var sp = h("span"); sp.style.flex = "1"; acts.appendChild(sp);
-      var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", x.n + " löschen"); del.addEventListener("click", function () { state.items.splice(i, 1); touch(); }); acts.appendChild(del);
+      var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", x.n + " löschen"); del.addEventListener("click", function () { state.items.splice(i, 1); if (x.f) DOCS.del(x.f); touch(); }); acts.appendChild(del);
       d.appendChild(acts); box.appendChild(d); });
     $("ctrEmpty").hidden = n > 0;
   }
@@ -495,8 +569,140 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
     .forEach(function (p) { var s = $(p[0]); p[1].forEach(function (o) { var e = h("option", null, o[1]); e.value = o[0]; s.appendChild(e); }); });
   $("ctrForm").addEventListener("submit", function (e) { e.preventDefault(); var n = $("cN").value.trim(), a = num($("cA").value);
     if (!n) { $("cN").focus(); toast("Wie heißt der Vertrag?"); return; } if (!(a > 0)) { $("cA").focus(); toast("Bitte einen Betrag eintragen."); return; }
-    state.items.push({ n: n, a: Math.round(a * 100) / 100, r: $("cR").value, c: +$("cC").value, m: +$("cM").value, k: /^\d{4}-\d{2}-\d{2}$/.test($("cK").value) ? $("cK").value : "", b: 0, x: "" });
-    $("cN").value = ""; $("cA").value = ""; $("cK").value = ""; touch(); toast(n + " eingetragen"); });
+    var lz = $("cL").value.trim() === "" ? null : parseInt($("cL").value, 10), fv = parseInt($("cF").value, 10);
+    var it = { n: n, a: Math.round(a * 100) / 100, r: $("cR").value, c: +$("cC").value, m: +$("cM").value, k: /^\d{4}-\d{2}-\d{2}$/.test($("cK").value) ? $("cK").value : "", b: 0, x: "" };
+    if (lz !== null && isFinite(lz) && lz >= 0 && lz <= 120) it.lz = lz;
+    if (fv > 0 && fv <= 24) it.fr = { v: fv, u: $("cFu").value };
+    if (/^\d{4}-\d{2}-\d{2}$/.test($("cB").value)) it.bg = $("cB").value;
+    var dr = scanDraft; scanDraft = null;
+    function finish() { state.items.push(it); resetForm(); touch(); toast(n + " eingetragen"); }
+    if (dr) DOCS.add(dr.blob, dr.name).then(function (id) { it.f = id; finish(); }, function (err) { finish(); toast(err && err.message === "voll" ? "Eingetragen. Vertrag nicht gespeichert: Speicher voll." : "Eingetragen. Vertrag konnte nicht gespeichert werden."); });
+    else finish(); });
+  function resetForm() {
+    ["cN", "cA", "cK", "cB", "cL", "cF"].forEach(function (id) { $(id).value = ""; });
+    $("cR").value = "m"; $("cC").value = "0"; $("cM").value = "1"; $("cFu").value = "m"; kTouched = false;
+    clearAuto(); $("scanRes").hidden = true; $("cMore").open = false; $("cSubmit").textContent = "Hinzufügen";
+  }
+
+  /* ---------- Vertrag hochladen und auslesen (alles lokal) ---------- */
+  var FU = { m: ["Monat", "Monate"], w: ["Woche", "Wochen"], t: ["Tag", "Tage"] };
+  var MB = 1048576, MAX_IN = 25 * MB, MAX_PDF = 5 * MB, MAX_TOTAL = 15 * MB;
+  var scanDraft = null, kTouched = false, scanning = false;
+  function mb(b) { if (b < 100 * 1024) return Math.max(1, Math.round(b / 1024)) + " KB"; return (b / MB).toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + " MB"; }
+  function clearAuto() { document.querySelectorAll("#ctrForm .auto").forEach(function (x) { x.classList.remove("auto"); }); document.querySelectorAll("#ctrForm .src").forEach(function (x) { x.textContent = ""; }); }
+  function setF(id, v, q) { var e = $(id); e.value = v; e.classList.add("auto"); var sEl = document.querySelector('.src[data-for="' + id + '"]'); if (sEl && q) sEl.textContent = "Gefunden: „" + (q.length > 90 ? q.slice(0, 88) + " …" : q) + "“"; }
+  ["cN", "cA", "cR", "cC", "cM", "cK", "cB", "cL", "cF", "cFu"].forEach(function (id) { $(id).addEventListener("input", function () { $(id).classList.remove("auto"); if (id === "cK") kTouched = !!$("cK").value; else calcK(); }); });
+  function addM(d, k) { var r = new Date(d.getFullYear(), d.getMonth() + k, d.getDate()); if (r.getDate() !== d.getDate()) r.setDate(0); return r; }
+  function calcK() {
+    if (kTouched) return; var b = parseIso($("cB").value), lz = parseInt($("cL").value, 10), fv = parseInt($("cF").value, 10), u = $("cFu").value;
+    if (!b || !(lz > 0) || !(fv > 0)) return;
+    var end = addM(b, lz); end.setDate(end.getDate() - 1); var k = u === "m" ? addM(end, -fv) : new Date(end.getTime() - fv * (u === "w" ? 7 : 1) * 864e5);
+    if (k >= todayD()) { $("cK").value = isoOf(k); $("cK").classList.add("auto"); var sEl = document.querySelector('.src[data-for="cK"]'); if (sEl) sEl.textContent = "Ausgerechnet: Laufzeitende " + fmt(end) + " minus Frist."; }
+  }
+  function prog(step, p) { $("scanProg").hidden = false; $("scanStep").textContent = step + (p >= 0 ? " … " + Math.round(p * 100) + " %" : " …");
+    $("scanProg").classList.toggle("wait", !(p >= 0)); if (p >= 0) $("scanBar").style.width = Math.round(p * 100) + "%"; }
+  var libs = null;
+  function loadLibs() {
+    if (!libs) libs = Promise.all(["ocr/regeln.js", "ocr/scan.js"].map(function (src) { return new Promise(function (ok, no) { var sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }); }))
+      .catch(function (e) { libs = null; throw e; });
+    return libs;
+  }
+  function pick() { if (scanning) return; $("scanFile").click(); }
+  $("scanBtn").addEventListener("click", pick);
+  $("scanTop").addEventListener("click", function () { $("ctrForm").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); pick(); });
+  $("scanDrop").addEventListener("click", function () { scanDraft = null; resetForm(); toast("Verworfen. Nichts gespeichert."); });
+  $("scanFile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    var pdf = /pdf/i.test(f.type) || /\.pdf$/i.test(f.name || "");
+    if (!pdf && !/^image\//i.test(f.type || "")) { toast("Bitte ein Foto oder PDF wählen."); return; }
+    if (f.size > MAX_IN || (pdf && f.size > MAX_PDF)) { toast(pdf ? "PDF ist zu groß (max. 5 MB)." : "Bild ist zu groß (max. 25 MB)."); return; }
+    scanning = true; $("scanRes").hidden = true; clearAuto(); prog("Lese Vertrag", -1);
+    loadLibs().then(function () { return VertragScan.read(f, prog); }).then(function (r) {
+      var blob = pdf ? f : (r.saveBlob || f), F = r.fields, found = [], miss = [];
+      scanDraft = { blob: blob, name: f.name || (pdf ? "Vertrag.pdf" : "Vertrag.jpg") };
+      resetForm(); scanDraft = { blob: blob, name: f.name || (pdf ? "Vertrag.pdf" : "Vertrag.jpg") };
+      if (F.anbieter) { setF("cN", F.anbieter.v.slice(0, 40), F.anbieter.q); found.push("Anbieter"); } else miss.push("Anbieter");
+      if (F.betrag) { setF("cA", F.betrag.v.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), F.betrag.q); found.push("Betrag"); } else miss.push("Betrag");
+      if (F.rhythmus) { $("cR").value = F.rhythmus.v; if (F.rhythmus.sure) $("cR").classList.add("auto"); }
+      $("cC").value = String(F.kategorie.v); if (F.kategorie.v !== 8) $("cC").classList.add("auto");
+      if (F.monat) { $("cM").value = String(F.monat); $("cM").classList.add("auto"); }
+      if (F.beginn) { setF("cB", F.beginn.v, F.beginn.q); found.push("Beginn"); }
+      if (F.laufzeit) { setF("cL", String(F.laufzeit.v), F.laufzeit.q); found.push("Laufzeit"); } else miss.push("Laufzeit");
+      if (F.frist) { setF("cF", String(F.frist.v), F.frist.q); $("cFu").value = F.frist.u; $("cFu").classList.add("auto"); found.push("Kündigungsfrist"); } else miss.push("Kündigungsfrist");
+      if (F.kuendbar) { setF("cK", F.kuendbar.v, null); var sk = document.querySelector('.src[data-for="cK"]'); if (sk) sk.textContent = "Ausgerechnet aus Laufzeit und Frist."; }
+      $("cMore").open = !!(F.beginn || F.laufzeit || F.frist);
+      $("scanDoc").textContent = (pdf ? "PDF: " : "Foto: ") + scanDraft.name + " (" + mb(blob.size) + ")";
+      var weak = r.textLen < 40 || F.textLen < 40;
+      $("scanSum").textContent = weak ? "Hier war kaum Text zu erkennen. Bitte selbst eintragen." :
+        (found.length ? "Erkannt: " + found.join(", ") + "." : "Nichts sicher erkannt.") + (miss.length ? " Nicht gefunden: " + miss.join(", ") + "." : "") + " Bitte alles prüfen, dann „Übernehmen“.";
+      var hl = $("scanHints"); hl.innerHTML = "";
+      (F.hints || []).concat(weak && !pdf ? ["Tipp: Foto gerade von oben, gutes Licht, ganze Seite im Bild."] : []).forEach(function (t) { hl.appendChild(h("li", null, t)); });
+      $("scanText").textContent = (r.text || "").trim() || "(kein Text)";
+      $("scanProg").hidden = true; $("scanRes").hidden = false; $("cSubmit").textContent = "Übernehmen";
+      $("scanBox").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }).catch(function (err) {
+      try { console.warn("Vertrag lesen:", err && (err.stack || err.message || err)); } catch (e) {}
+      $("scanProg").hidden = true;
+      var pw = err && /password/i.test(err.name || err.message || "");
+      toast(pw ? "Das PDF hat ein Passwort. Bitte ohne Passwort speichern." : navigator.onLine === false && !libs ? "Beim ersten Mal braucht die Erkennung einmal Internet." : "Das hat nicht geklappt. Bitte selbst eintragen.");
+    }).then(function () { scanning = false; });
+  });
+
+  /* Gespeicherte Verträge: IndexedDB nur auf diesem Gerät, in der Sicherung mit drin */
+  var DOCS = (function () {
+    var DBN = KEY + "-dokumente", cache = {}, ready = false, dbp = null;
+    function db() { if (!dbp) dbp = new Promise(function (ok, no) { if (!window.indexedDB) return no(new Error("kein idb")); var q = indexedDB.open(DBN, 1);
+      q.onupgradeneeded = function () { q.result.createObjectStore("d", { keyPath: "id" }); }; q.onsuccess = function () { ok(q.result); }; q.onerror = function () { no(q.error); }; }); return dbp; }
+    function tx(mode, fn) { return db().then(function (d) { return new Promise(function (ok, no) { var t = d.transaction("d", mode), st = t.objectStore("d"), out = fn(st); t.oncomplete = function () { ok(out && out.result !== undefined ? out.result : out); }; t.onerror = function () { no(t.error); }; t.onabort = function () { no(t.error || new Error("abbruch")); }; }); }); }
+    function b64(blob) { return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(",")[1] || ""); }; r.onerror = no; r.readAsDataURL(blob); }); }
+    function unb64(s, t) { var bin = atob(s), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], { type: t }); }
+    function total() { var s = 0; for (var k in cache) s += cache[k].s; return s; }
+    function load() { return tx("readonly", function (st) { return st.getAll(); }).then(function (rows) {
+        return Promise.all((rows || []).map(function (r) { return b64(r.blob).then(function (d) { cache[r.id] = { n: r.n, t: r.blob.type, s: r.blob.size, d: d }; }); })); })
+      .catch(function () {}).then(function () { ready = true; sync(); store(); render(); }); }
+    function add(blob, name) {
+      if (total() + blob.size > MAX_TOTAL) return Promise.reject(new Error("voll"));
+      var id = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      return tx("readwrite", function (st) { st.put({ id: id, n: name, blob: blob }); }).then(function () { return b64(blob); }).then(function (d) {
+        cache[id] = { n: name, t: blob.type, s: blob.size, d: d }; store();
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+        return id; });
+    }
+    function del(id) { delete cache[id]; store(); tx("readwrite", function (st) { st.delete(id); }).catch(function () {}); }
+    function get(id) { return tx("readonly", function (st) { return st.get(id); }).then(function (r) { return r && r.blob; }); }
+    function clear() { cache = {}; store(); tx("readwrite", function (st) { st.clear(); }).catch(function () {}); }
+    function refs(st) { var o = {}; (st.items || []).forEach(function (x) { if (x.f) o[x.f] = 1; }); return o; }
+    function sync() { if (!ready || state.example) return; var r = refs(state); Object.keys(cache).forEach(function (id) { if (!r[id]) del(id); }); }
+    function pack(st) { var r = refs(st), docs = {}, c = JSON.parse(JSON.stringify(st)); Object.keys(r).forEach(function (id) { if (cache[id]) docs[id] = cache[id]; }); if (Object.keys(docs).length) c.docs = docs; return c; }
+    function restore(docs) { var ids = Object.keys(docs || {}); if (!ids.length) return;
+      ids.forEach(function (id) { var x = docs[id]; if (!x || typeof x.d !== "string" || !/^d[a-z0-9]+$/.test(id)) return;
+        try { var bl = unb64(x.d, /^(image\/jpeg|image\/png|application\/pdf)$/.test(x.t) ? x.t : "application/octet-stream"); cache[id] = { n: String(x.n || "Vertrag").slice(0, 80), t: bl.type, s: bl.size, d: x.d };
+          tx("readwrite", function (st) { st.put({ id: id, n: cache[id].n, blob: bl }); }).catch(function () {}); } catch (e) {} });
+      store(); }
+    function store() { var e = $("docStore"); if (!e) return; var n = Object.keys(cache).length, t = total();
+      e.textContent = ""; e.appendChild(document.createTextNode(n ? n + (n === 1 ? " Vertrag" : " Verträge") + " gespeichert, " + mb(t) + " von " + mb(MAX_TOTAL) + "." : "Noch keine Verträge gespeichert."));
+      var pr = h("div", "progress"), bar = h("i"); bar.style.width = Math.min(100, t / MAX_TOTAL * 100) + "%"; pr.appendChild(bar); e.appendChild(pr); }
+    return { load: load, add: add, del: del, get: get, clear: clear, pack: pack, restore: restore, sync: sync, has: function (id) { return !!cache[id]; }, ready: function () { return ready; }, meta: function (id) { return cache[id]; } };
+  })();
+
+  function showDoc(x) {
+    var v = $("viewer"), body = $("viewBody"), m = DOCS.meta(x.f); if (!m) return;
+    DOCS.get(x.f).then(function (bl) { if (!bl) { toast("Vertrag nicht gefunden."); return; }
+      var u = URL.createObjectURL(bl); body.innerHTML = ""; v.hidden = false; v.setAttribute("data-url", u); $("viewTitle").textContent = x.n;
+      if (/^image\//.test(bl.type)) { var im = h("img"); im.alt = "Vertrag " + x.n; im.src = u; body.appendChild(im); }
+      else { var bx = h("div", "pdfBox"); bx.appendChild(h("b", null, m.n)); bx.appendChild(h("p", null, "PDF, " + mb(bl.size) + ". Öffnet im PDF-Programm deines Geräts."));
+        var a = h("a", "btn", "PDF öffnen"); a.href = u; a.target = "_blank"; a.rel = "noopener"; a.style.textAlign = "center"; a.style.textDecoration = "none"; bx.appendChild(a); body.appendChild(bx); }
+      $("viewSave").onclick = function () { var a = document.createElement("a"); a.href = u; a.download = m.n || "Vertrag"; document.body.appendChild(a); a.click(); a.remove(); };
+      $("viewDel").onclick = function () { if (!confirm("Gespeicherten Vertrag von " + x.n + " entfernen? Der Eintrag bleibt.")) return; DOCS.del(x.f); delete x.f; closeDoc(); touch(); toast("Vertrag entfernt."); };
+    });
+  }
+  function closeDoc() { var v = $("viewer"), u = v.getAttribute("data-url"); v.hidden = true; $("viewBody").innerHTML = ""; if (u) setTimeout(function () { URL.revokeObjectURL(u); }, 60000); }
+  $("viewClose").addEventListener("click", closeDoc);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("viewer").hidden) closeDoc(); });
+  $("resetYes").addEventListener("click", function () { DOCS.clear(); });
+  var _fix = fix; fix = function (s) { if (s && s.docs) { DOCS.restore(s.docs); delete s.docs; } return _fix(s); };
+  document.body.appendChild($("viewer"));
+  function start() { DOCS.load(); }
 
 
   /* ---------- Laden, Sichern, Löschen (gemeinsam) ---------- */
@@ -508,7 +714,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
   $("resetYes").addEventListener("click", function () { state = blank(); touch(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
-  $("exportBtn").addEventListener("click", function () { THS.sichern(JSON.stringify(state, null, 1), toast); });
+  $("exportBtn").addEventListener("click", function () { if (!DOCS.ready()) { toast("Moment, Verträge werden vorbereitet."); return; } THS.sichern(JSON.stringify(DOCS.pack(state)), toast); });
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
     rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || s.app !== APP) throw 0; s.example = false; state = fix(s); touch(); toast("Sicherung geladen"); }
