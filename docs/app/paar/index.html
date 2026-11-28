@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paar-Budget</title>
+<meta name="description" content="Bonus-App zum Tabellenheld Paar-Budget: gemeinsame Kosten fair teilen, Ausgleich sofort sehen. Alle Daten bleiben auf deinem Gerät.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4F3EF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Paar-Budget">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+@font-face { font-family: "Fredoka"; src: url(fonts/fredoka.ttf) format("truetype"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(fonts/inter-400.ttf) format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(fonts/inter-600.ttf) format("truetype"); font-weight: 600; font-display: swap; }
+:root { --page: #F4F3EF; --card: #FFFFFF; --soft: #ECEEF0; --ink: #1E2A33; --muted: #5E6B75; --line: #DADFE3; --accent: #2E4A62; --accent-ink: #FFFFFF; --p1: #2E4A62; --p1s: #DCE6EE; --p2: #D9694B; --p2s: #F9E1D9; --p0: #6E9E8A; --p0s: #DCEBE4; --beam: #8A7A63; --good: #2F7D52; --bad: #B5483B; --focus: #9DB7CC; --hint-bg: #FFF3D6; --hint-ink: #7A5600; --nav: rgba(255,255,255,.94); --shadow: 0 2px 12px rgba(30,42,51,.07); --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #12181D; --card: #1B242B; --soft: #232F38; --ink: #E8EEF2; --muted: #9FB0BC; --line: #2E3B45; --accent: #8DB3D3; --accent-ink: #0F161B; --p1: #8DB3D3; --p1s: #24384A; --p2: #F0937A; --p2s: #4A2D26; --p0: #8CC2AC; --p0s: #21392F; --beam: #B9A98F; --good: #6CC79A; --bad: #E8897B; --focus: #9DB7CC; --hint-bg: #3A2F12; --hint-ink: #F5D38A; --nav: rgba(27,36,43,.95); --shadow: 0 2px 12px rgba(0,0,0,.35); --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark; } }
+:root[data-theme="dark"] { --page: #12181D; --card: #1B242B; --soft: #232F38; --ink: #E8EEF2; --muted: #9FB0BC; --line: #2E3B45; --accent: #8DB3D3; --accent-ink: #0F161B; --p1: #8DB3D3; --p1s: #24384A; --p2: #F0937A; --p2s: #4A2D26; --p0: #8CC2AC; --p0s: #21392F; --beam: #B9A98F; --good: #6CC79A; --bad: #E8897B; --focus: #9DB7CC; --hint-bg: #3A2F12; --hint-ink: #F5D38A; --nav: rgba(27,36,43,.95); --shadow: 0 2px 12px rgba(0,0,0,.35); --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif; --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; background: var(--page); color: var(--ink); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.45; min-height: 100vh; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 520px; margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(92px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; gap: 14px; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 2px 0; }
+h1 { font-family: var(--display); font-weight: var(--dw, 700); font-size: var(--h1, 24px); margin: 0; letter-spacing: .2px; line-height: 1.15; }
+h2 { font-family: var(--display); font-weight: var(--dw2, 600); font-size: var(--h2, 19px); margin: 0 0 10px; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.hint { background: var(--hint-bg); color: var(--hint-ink); border-radius: 14px; padding: 10px 12px; font-size: 13px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.hint button { border: 0; background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.view { display: none; gap: 14px; }
+.view.on { display: grid; animation: fade .25s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--soft); border-radius: 12px; padding: 10px; min-width: 0; }
+.stat b { display: block; font-family: var(--display); font-weight: var(--dw2, 600); font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; text-transform: uppercase; letter-spacing: .2px; color: var(--muted); font-weight: 600; }
+.pos b { color: var(--good); } .neg b { color: var(--bad); }
+.progress { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 8px; }
+.progress i { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--accent); transition: width .5s; }
+label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+input, select { font: inherit; font-size: 16px; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; min-width: 0; background: var(--soft); color: var(--ink); }
+select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.field { display: grid; gap: 4px; flex: 1 1 150px; min-width: 0; }
+.field.small { flex: 0 1 112px; }
+form.card { display: grid; gap: 10px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 13px; border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); }
+.btn { font-family: var(--display); font-weight: var(--dw2, 600); font-size: 16px; border: 0; border-radius: 14px; padding: 12px 16px; background: var(--accent); color: var(--accent-ink); cursor: pointer; width: 100%; }
+.btn.ghost { background: var(--soft); color: var(--ink); }
+.btn:active { transform: scale(.98); }
+.btns { display: grid; gap: 8px; }
+ul.list { list-style: none; margin: 0; padding: 0; }
+ul.list li { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--line); min-width: 0; }
+ul.list li:last-child { border-bottom: 0; }
+.what { flex: 1; min-width: 0; }
+.what span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.what small { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.del { border: 0; background: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 6px 8px; border-radius: 8px; flex: none; }
+.empty { color: var(--muted); font-size: 13px; text-align: center; margin: 6px 0; }
+.status { border: 0; border-radius: 999px; padding: 6px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; flex: none; min-width: 84px; }
+.s0 { background: var(--soft); color: var(--muted); }
+.s1 { background: var(--ok-bg); color: var(--ok-ink); }
+.s2 { background: var(--no-bg); color: var(--no-ink); }
+.s3 { background: var(--warn-bg); color: var(--warn-ink); }
+.links { display: grid; gap: 2px; }
+.links a { color: var(--ink); text-decoration: none; padding: 11px 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 15px; }
+.links a:last-child { border-bottom: 0; }
+.steps { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+.confirm { display: none; gap: 8px; margin-top: 8px; }
+.confirm.on { display: grid; }
+.foot { text-align: center; color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--nav); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); z-index: 5; }
+nav.tabs .in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+nav.tabs button { border: 0; background: none; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; color: var(--muted); font-size: 11px; font-weight: 600; }
+nav.tabs svg { width: 24px; height: 24px; }
+nav.tabs button[aria-selected="true"] { color: var(--accent); background: var(--soft); }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 9; max-width: calc(100% - 32px); text-align: center; }
+.toast.on { opacity: 1; transform: translateX(-50%); }
+canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
+@media (prefers-reduced-motion: reduce) { .view.on { animation: none; } .progress i { transition: none; } }
+
+.mon { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mon b { font-family: var(--display); font-weight: 600; font-size: 18px; }
+.mon button { border: 0; background: var(--soft); border-radius: 999px; width: 38px; height: 38px; font-size: 18px; cursor: pointer; }
+#scale { width: 100%; height: auto; display: block; overflow: visible; }
+.verdict { text-align: center; display: grid; gap: 8px; }
+.verdict .big { font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1.2; }
+.verdict small { color: var(--muted); font-size: 13px; }
+.pp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pp .stat.a { background: var(--p1s); } .pp .stat.b { background: var(--p2s); }
+.pp .stat.a b { color: var(--p1); } .pp .stat.b b { color: var(--p2); }
+.pp .stat small { display: block; font-size: 12px; color: var(--muted); }
+.who { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.who .chip { text-align: center; padding: 9px 4px; font-weight: 600; }
+.who .chip[aria-pressed="true"][data-p="1"] { background: var(--p1); border-color: var(--p1); color: #fff; }
+.who .chip[aria-pressed="true"][data-p="2"] { background: var(--p2); border-color: var(--p2); color: #fff; }
+.who .chip[aria-pressed="true"][data-p="0"] { background: var(--p0); border-color: var(--p0); color: #fff; }
+.dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 13px; color: #fff; flex: none; }
+.dot.p1 { background: var(--p1); } .dot.p2 { background: var(--p2); } .dot.p0 { background: var(--p0); }
+li.priv .what span, li.priv .amt { opacity: .5; text-decoration: line-through; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.check input { width: 20px; height: 20px; flex: none; }
+.kv { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.kv:last-child { border-bottom: 0; } .kv b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.btn.done { background: var(--good); color: #fff; }
+
+
+.thsStand { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+#thsHinweis { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(86px + env(safe-area-inset-bottom)); width: calc(100% - 32px); max-width: 488px; z-index: 9;
+  background: var(--card); color: var(--ink); border-radius: 16px; padding: 12px 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .22); display: grid; gap: 10px; font-size: 14px; }
+#thsHinweis p { margin: 0; }
+#thsHinweis div { display: flex; gap: 8px; }
+#thsHinweis .btn { flex: 1; padding: 9px 12px; font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="view on" id="v-start" aria-label="Start">
+    <header class="top"><div><h1>Paar-Budget</h1><p class="sub" id="sSub">Fair teilen, ohne Streit ums Geld.</p></div></header>
+    <div class="hint" data-ex hidden><span>Das sind Beispiele zum Ausprobieren.</span><button type="button" data-clear-example>Beispiele löschen</button></div>
+    <div class="card mon"><button type="button" id="mPrev" aria-label="Monat zurück">‹</button><b id="mName">Monat</b><button type="button" id="mNext" aria-label="Monat vor">›</button></div>
+    <div class="card">
+      <svg id="scale" viewBox="0 0 320 190" role="img" aria-label="Waage: wer hat mehr bezahlt"></svg>
+      <div class="verdict"><div class="big" id="vBig">–</div><small id="vSmall"></small>
+        <button class="btn" type="button" id="settle">Ausgleich erledigt</button></div>
+    </div>
+    <div class="pp">
+      <div class="stat a"><span id="aName">Person 1</span><b id="aPaid">–</b><small id="aFair"></small></div>
+      <div class="stat b"><span id="bName">Person 2</span><b id="bPaid">–</b><small id="bFair"></small></div>
+    </div>
+    <div class="card">
+      <h2>Gemeinschaftskonto</h2>
+      <div class="kv"><span id="dA">Dauerauftrag</span><b id="dAv">–</b></div>
+      <div class="kv"><span id="dB">Dauerauftrag</span><b id="dBv">–</b></div>
+      <div class="kv"><span>Diesen Monat vom Konto</span><b id="kOut">–</b></div>
+      <div class="kv"><span>Plus/Minus</span><b id="kRest">–</b></div>
+    </div>
+    <button class="btn" type="button" data-go="ausgaben">+ Ausgabe eintragen</button>
+  </section>
+
+  <section class="view" id="v-ausgaben" aria-label="Ausgaben">
+    <header class="top"><div><h1>Ausgaben</h1><p class="sub">Wer hat was bezahlt? Den Rest rechnet die Waage.</p></div></header>
+    <form class="card" id="exForm" autocomplete="off">
+      <div class="row">
+        <div class="field"><label for="eN">Was</label><input id="eN" maxlength="40" placeholder="z. B. Wocheneinkauf"></div>
+        <div class="field small"><label for="eA">Betrag</label><input id="eA" inputmode="decimal" placeholder="0,00"></div>
+      </div>
+      <label>Bezahlt von</label>
+      <div class="who" id="eWho" role="group" aria-label="Bezahlt von"></div>
+      <div class="row">
+        <div class="field"><label for="eD">Datum</label><input type="date" id="eD"></div>
+        <div class="field"><label for="eC">Kategorie</label><select id="eC"></select></div>
+      </div>
+      <label class="check" style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink)"><input type="checkbox" id="eP"> Nur für eine Person, nicht teilen</label>
+      <button class="btn" type="submit">Eintragen</button>
+    </form>
+    <div class="card"><h2 id="exTitle">Diesen Monat</h2><ul class="list" id="exList"></ul></div>
+  </section>
+
+  <section class="view" id="v-fix" aria-label="Fixkosten">
+    <header class="top"><div><h1>Fixkosten</h1><p class="sub">Was jeden Monat gemeinsam anfällt.</p></div></header>
+    <div class="stats"><div class="stat"><span>Pro Monat</span><b id="fSum">–</b></div><div class="stat"><span>Gemeinsam</span><b id="fJoint">–</b></div><div class="stat"><span>Posten</span><b id="fCnt">–</b></div></div>
+    <div class="card"><ul class="list" id="fixList"></ul></div>
+    <form class="card" id="fixForm" autocomplete="off">
+      <h2>Neuer Posten</h2>
+      <div class="row">
+        <div class="field"><label for="fN">Was</label><input id="fN" maxlength="40" placeholder="z. B. Miete"></div>
+        <div class="field small"><label for="fA">pro Monat</label><input id="fA" inputmode="decimal" placeholder="0,00"></div>
+      </div>
+      <label>Bezahlt von</label>
+      <div class="who" id="fWho" role="group" aria-label="Bezahlt von"></div>
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+  </section>
+
+  <section class="view" id="v-wir" aria-label="Wir zwei">
+    <header class="top"><div><h1>Wir zwei</h1><p class="sub">Einmal einstellen, dann rechnet die App jeden Monat fair.</p></div></header>
+    <form class="card" id="wForm" autocomplete="off">
+      <div class="row">
+        <div class="field"><label for="wN1">Person 1</label><input id="wN1" maxlength="16"></div>
+        <div class="field"><label for="wN2">Person 2</label><input id="wN2" maxlength="16"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="wI1">Netto Person 1</label><input id="wI1" inputmode="decimal"></div>
+        <div class="field"><label for="wI2">Netto Person 2</label><input id="wI2" inputmode="decimal"></div>
+      </div>
+      <label>Wie teilt ihr?</label>
+      <div class="chips" id="wMode" role="group" aria-label="Aufteilung"></div>
+      <div class="field" id="wOwnBox"><label for="wOwn">Anteil Person 1 in %</label><input id="wOwn" inputmode="decimal"></div>
+      <div class="field"><label for="wH">Haushaltsgeld pro Monat aufs Gemeinschaftskonto</label><input id="wH" inputmode="decimal"></div>
+    </form>
+    <div class="card"><h2>So teilt ihr</h2><p style="margin:0" id="wRes"></p></div>
+  </section>
+
+
+  <section class="view" id="v-mehr" aria-label="Mehr">
+    <header class="top"><div><h1>Mehr</h1><p class="sub">Einrichten, sichern, Hilfe.</p></div></header>
+    
+    <div class="card">
+      <h2>Als App auf den Startbildschirm</h2>
+      <button class="btn" type="button" id="installBtn" hidden>Jetzt installieren</button>
+      <p style="margin:0;font-size:14px"><b>iPhone (Safari):</b></p>
+      <ol class="steps"><li>Unten auf das Teilen-Symbol tippen (Quadrat mit Pfeil).</li><li>„Zum Home-Bildschirm“ wählen.</li><li>„Hinzufügen“ tippen. Fertig.</li></ol>
+      <p style="margin:10px 0 0;font-size:14px"><b>Android (Chrome):</b></p>
+      <ol class="steps"><li>Oben rechts auf die drei Punkte tippen.</li><li>„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.</li></ol>
+      <p class="empty" style="text-align:left;margin-top:10px">Tipp: Auf dem Startbildschirm bleiben deine Einträge am zuverlässigsten gespeichert, und die App läuft auch ohne Internet.</p>
+    </div>
+    <div class="card">
+      <h2>Deine Daten</h2>
+      <p style="margin:0 0 10px;font-size:14px">Alles, was du einträgst, bleibt nur auf deinem Gerät. Es wird nichts an uns oder andere gesendet. Bei Handywechsel oder gelöschten Browserdaten sind die Einträge weg, darum ab und zu sichern: Schick dir die Datei per Mail oder leg sie in deine Dateien. Mit „Daten laden“ holst du sie zurück.</p>
+      <div class="btns">
+        <button class="btn ghost" type="button" id="exportBtn">Daten sichern</button>
+        <button class="btn ghost" type="button" id="importBtn">Daten laden</button>
+        <input type="file" id="importFile" accept="application/json,.json,text/plain,.txt" hidden>
+        <button class="btn ghost" type="button" id="resetBtn">Alles löschen</button>
+        <div class="confirm" id="resetConfirm"><p style="margin:0;font-size:14px">Wirklich alle Einträge löschen? Das lässt sich nicht rückgängig machen.</p><button class="btn" type="button" id="resetYes">Ja, alles löschen</button><button class="btn ghost" type="button" id="resetNo">Abbrechen</button></div>
+      </div>
+    </div>
+    <div class="card links">
+      <a href="../../index.html#impressum">Impressum <span aria-hidden="true">›</span></a>
+      <a href="../../index.html#datenschutz">Datenschutz <span aria-hidden="true">›</span></a>
+      <a href="../../index.html">Tabellenheld Vorlagen <span aria-hidden="true">›</span></a>
+    </div>
+    <p class="foot">Bonus zum Tabellenheld Paar-Budget. Planungshilfe, keine Finanzberatung.</p>
+  </section>
+
+</div>
+<nav class="tabs" aria-label="Bereiche"><div class="in" role="tablist">
+  <button type="button" role="tab" data-tab="start" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M8 20h8M4 7h16M4 7l-2.5 6a2.5 2 0 0 0 5 0zM20 7l-2.5 6a2.5 2 0 0 0 5 0z"/></svg>Waage</button>
+  <button type="button" role="tab" data-tab="ausgaben" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Ausgaben</button>
+  <button type="button" role="tab" data-tab="fix" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/></svg>Fixkosten</button>
+  <button type="button" role="tab" data-tab="wir" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/></svg>Wir zwei</button>
+  <button type="button" role="tab" data-tab="mehr" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mehr</button>
+</div></nav>
+<div class="toast" id="toast" role="status"></div>
+<canvas id="confetti" hidden></canvas>
+<script>
+/* Tabellenheld-Sicherung v1: Daten sichern, Erinnerung, Umzug. Alles bleibt auf dem Gerät. */
+(function () {
+  "use strict";
+  var KEY = "tabellenheld-paar-v1", FILE = "tabellenheld-paar-sicherung", LABEL = "Paar-Budget", MK = KEY + "-sicherung", DAY = 864e5;
+  function get() { try { return JSON.parse(localStorage.getItem(MK)) || {}; } catch (e) { return {}; } }
+  function put(m) { try { localStorage.setItem(MK, JSON.stringify(m)); } catch (e) {} }
+  function raw() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
+  function real() { try { var s = JSON.parse(raw()); return !!(s && s.v === 1 && !s.example); } catch (e) { return false; } }
+  function fp() { var s = raw(), h = 5381; for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return s.length + ":" + h; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function de(ms) { var d = new Date(ms); return pad(d.getDate()) + "." + pad(d.getMonth() + 1) + "." + d.getFullYear(); }
+  function say(msg) { var t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("on"); setTimeout(function () { t.classList.remove("on"); }, 2600); }
+
+  /* Umzug: Daten von der alten Adresse übernehmen */
+  var um = /^#umzug=([A-Za-z0-9_-]+)$/.exec(location.hash || ""), umOk = false;
+  if (um) {
+    try {
+      var b = um[1].replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "=";
+      var p = JSON.parse(decodeURIComponent(escape(atob(b))));
+      if (p && p.key === KEY && typeof p.data === "string") {
+        var d = JSON.parse(p.data), have = raw();
+        if (d && d.v === 1 && (!real() || have === p.data || confirm("Auf diesem Gerät sind schon Einträge. Durch die Einträge von der alten Adresse ersetzen?"))) {
+          localStorage.setItem(KEY, p.data); var mm = get(); if (p.last) mm.last = p.last; mm.seit = mm.seit || Date.now(); put(mm); umOk = true;
+        }
+      }
+    } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  }
+
+  function stand() {
+    var el = document.getElementById("thsStand"); if (!el) return; var m = get();
+    el.textContent = m.last ? "Letzte Sicherung: " + de(m.last) + "." : "Noch keine Sicherung.";
+  }
+  function done(toast) { var m = get(); m.last = Date.now(); m.fp = fp(); put(m); stand(); var h = document.getElementById("thsHinweis"); if (h) h.hidden = true; (toast || say)("Sicherung gespeichert"); }
+  function laden(text, fn, toast) {
+    var blob = new Blob([text], { type: "application/json" }), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = fn; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); done(toast);
+  }
+  /* Von der App aufgerufen: THS.sichern(JSON-Text, toast) */
+  function sichern(text, toast) {
+    var t = new Date(), fn = FILE + "-" + t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate()) + ".json", f = null;
+    var handy = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+    try { f = new File([text], fn, { type: "application/json" }); } catch (e) {}
+    try {
+      if (handy && f && navigator.canShare && navigator.canShare({ files: [f] })) {
+        navigator.share({ files: [f], title: LABEL + ": Sicherung" }).then(function () { done(toast); }).catch(function (err) {
+          if (err && err.name === "AbortError") return; try { laden(text, fn, toast); } catch (e) { (toast || say)("Speichern hat nicht geklappt."); } });
+        return;
+      }
+      laden(text, fn, toast);
+    } catch (e) { (toast || say)("Speichern hat nicht geklappt."); }
+  }
+  window.THS = { sichern: sichern };
+
+  function hinweis() {
+    if (window.self !== window.top) return;           /* nicht in der Vorschau auf der Verkaufsseite */
+    var m = get(), now = Date.now();
+    if (!real()) return;
+    if (!m.seit) { m.seit = now; m.fp = fp(); put(m); }
+    if (fp() === m.fp) return;                          /* seit Start bzw. letzter Sicherung nichts geändert */
+    var faellig = m.last ? now - m.last > 30 * DAY : now - m.seit > 3 * DAY;
+    if (!faellig || (m.spaeter && now < m.spaeter)) return;
+    var h = document.createElement("div"); h.id = "thsHinweis"; h.setAttribute("role", "status");
+    h.innerHTML = '<p>' + (m.last ? "Deine letzte Sicherung ist über einen Monat alt." : "Deine Einträge liegen nur auf diesem Gerät.") +
+      ' Einmal sichern, dann gehen sie bei Handywechsel nicht verloren.</p><div><button type="button" class="btn" id="thsJetzt">Jetzt sichern</button><button type="button" class="btn ghost" id="thsSpaeter">Später</button></div>';
+    document.body.appendChild(h);
+    var nav = document.querySelector("nav.tabs"); if (nav) h.style.bottom = (nav.offsetHeight + 10) + "px";
+    document.getElementById("thsJetzt").addEventListener("click", function () { var b = document.getElementById("exportBtn"); if (b) b.click(); });
+    document.getElementById("thsSpaeter").addEventListener("click", function () { var m2 = get(); m2.spaeter = Date.now() + 7 * DAY; put(m2); h.hidden = true; });
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var b = document.getElementById("exportBtn");
+    if (b && !document.getElementById("thsStand")) { var p = document.createElement("p"); p.id = "thsStand"; p.className = "thsStand"; b.parentNode.parentNode.insertBefore(p, b.parentNode); }
+    stand(); if (umOk) say("Deine Daten sind umgezogen."); else hinweis();
+  });
+})();
+</script>
+<script>
+
+(function () {
+  "use strict";
+  var KEY = "tabellenheld-paar-v1", APP = "paar";
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function eur(v, dec) { v = Math.round((+v || 0) * 100) / 100; var neg = v < 0; v = Math.abs(v);
+    var s = (dec === 0 ? Math.round(v) : v).toLocaleString("de-DE", { minimumFractionDigits: dec === 0 || v % 1 === 0 ? 0 : 2, maximumFractionDigits: dec === 0 ? 0 : 2 });
+    return (neg ? "−" : "") + s + "\u00a0€"; }
+  function num(s) { s = String(s || "").trim().replace(/\s|€/g, ""); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); var n = parseFloat(s); return isFinite(n) ? n : NaN; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function isoOf(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function parseIso(s) { var p = String(s || "").split("-"); return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null; }
+  function todayD() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function fmt(d, opt) { return d ? d.toLocaleDateString("de-DE", opt || { day: "2-digit", month: "2-digit", year: "numeric" }) : ""; }
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var state;
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function touch() { save(); render(); }
+  var toastT;
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("on"); }, 2200); }
+  var tabs = Array.prototype.slice.call(document.querySelectorAll("nav.tabs button"));
+  var onShow = {};
+  function go(name, push) {
+    document.querySelectorAll(".view").forEach(function (v) { v.classList.toggle("on", v.id === "v-" + name); });
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false"); });
+    if (push !== false) { try { history.replaceState(null, "", "#" + name); } catch (e) {} }
+    window.scrollTo(0, 0); if (onShow[name]) onShow[name]();
+  }
+  function confetti(cols) {
+    if (reduce) return; var cv = $("confetti"), ctx = cv.getContext("2d"); cv.hidden = false;
+    var W = cv.width = innerWidth, H = cv.height = innerHeight, ps = []; cols = cols || ["#B8975A", "#ffffff", "#8E9C85", "#E6DCCB"];
+    for (var i = 0; i < 140; i++) ps.push({ x: W / 2 + (Math.random() - .5) * 80, y: H * .45, vx: (Math.random() - .5) * 11, vy: -Math.random() * 12 - 4, r: Math.random() * 6.28, vr: (Math.random() - .5) * .3, c: cols[i % cols.length], w: 6 + Math.random() * 5 });
+    var t0 = performance.now();
+    (function f(now) { ctx.clearRect(0, 0, W, H); var done = now - t0 > 2600;
+      ps.forEach(function (p) { p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -2, p.w, 4); ctx.restore(); });
+      if (!done) requestAnimationFrame(f); else { ctx.clearRect(0, 0, W, H); cv.hidden = true; } })(t0);
+  }
+
+
+  var CATS = ["Lebensmittel", "Haushalt und Drogerie", "Wohnen", "Energie", "Mobilität", "Freizeit und Ausgehen", "Urlaub", "Versicherungen", "Abos und Medien", "Kinder und Haustiere", "Geschenke", "Sonstiges"];
+  var MN = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+  function ymOf(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
+  function blank() { return { v: 1, app: APP, example: false, n1: "Ich", n2: "Partner", i1: 0, i2: 0, mode: "halb", own: 50, house: 0, fix: [], ex: [], done: {}, ym: ymOf(todayD()) }; }
+  function example() { var s = blank(); s.example = true; s.n1 = "Anna"; s.n2 = "Ben"; s.i1 = 2600; s.i2 = 1900; s.mode = "eink"; s.own = 60; s.house = 600; s.ym = "2027-01";
+    s.fix = [{ n: "Miete warm", a: 1150, p: 0 }, { n: "Strom", a: 85, p: 0 }, { n: "Internet", a: 39.99, p: 2 }, { n: "Rundfunkbeitrag", a: 18.36, p: 2 },
+             { n: "Streamingdienst", a: 13.99, p: 1 }, { n: "Hausrat und Haftpflicht", a: 14.5, p: 0 }, { n: "Auto: Versicherung und Steuer", a: 62, p: 1 }];
+    var E = [["01-04", "Wocheneinkauf", 87.40, 0, 0], ["01-06", "Drogerie", 23.15, 1, 1], ["01-09", "Pizza bestellt", 31.50, 2, 5], ["01-11", "Wocheneinkauf", 94.20, 0, 0],
+             ["01-14", "Tanken", 58, 1, 4], ["01-16", "Baumarkt: Regal", 42.90, 2, 2], ["01-18", "Wocheneinkauf", 79.65, 0, 0], ["01-22", "Geburtstagsgeschenk Oma", 35, 1, 10, 1],
+             ["01-23", "Essen gehen", 64.80, 2, 5], ["01-25", "Wocheneinkauf", 101.30, 0, 0], ["01-28", "Anzahlung Ferienwohnung", 300, 2, 6], ["01-30", "Tierfutter und Streu", 27.40, 1, 9],
+             ["02-01", "Wocheneinkauf", 88.10, 0, 0], ["02-05", "Kino", 26, 1, 5], ["02-08", "Wocheneinkauf", 92.75, 0, 0], ["02-12", "Tanken", 61.30, 2, 4]];
+    s.ex = E.map(function (e) { return { d: "2027-" + e[0], n: e[1], a: e[2], p: e[3], c: CATS[e[4]], x: !!e[5] }; }); return s; }
+  function fix(s) { var b = blank(); for (var k in b) if (!(k in s)) s[k] = b[k]; ["fix", "ex"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); if (!s.done || typeof s.done !== "object") s.done = {}; return s; }
+  function clearExample(s) { var b = blank(); b.n1 = s.n1 === "Anna" ? "Ich" : s.n1; b.n2 = s.n2 === "Ben" ? "Partner" : s.n2; return b; }
+  function nm(p) { return p === 1 ? state.n1 : p === 2 ? state.n2 : "Gemeinsam"; }
+  function share1() { if (state.mode === "halb") return .5; if (state.mode === "eigen") return Math.min(Math.max((+state.own || 0) / 100, 0), 1);
+    var a = +state.i1 || 0, b = +state.i2 || 0; return a + b > 0 ? a / (a + b) : .5; }
+  function calc(ym) {
+    var r = { p1: 0, p2: 0, p0: 0, fixJ: 0 };
+    state.fix.forEach(function (f) { r["p" + f.p] += f.a; if (f.p === 0) r.fixJ += f.a; });
+    state.ex.forEach(function (e) { if (e.d.slice(0, 7) === ym && !e.x) r["p" + e.p] += e.a; });
+    r.s1 = share1(); r.priv = r.p1 + r.p2; r.fair1 = r.s1 * r.priv; r.fair2 = r.priv - r.fair1; r.x = r.p1 - r.fair1; r.total = r.priv + r.p0;
+    r.plan = r.fixJ + (+state.house || 0); r.d1 = r.s1 * r.plan; r.d2 = r.plan - r.d1; r.rest = r.plan - r.p0; return r; }
+  function shift(ym, k) { var y = +ym.slice(0, 4), m = +ym.slice(5) - 1 + k; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + "-" + pad(m + 1); }
+  function mname(ym) { return MN[+ym.slice(5) - 1] + " " + ym.slice(0, 4); }
+
+  /* ---------- Waage ---------- */
+  var angShown = 0, angTarget = 0, running = false;
+  function scaleDraw(a) {
+    var s = $("scale"); while (s.firstChild) s.removeChild(s.firstChild);
+    var cx = 160, cy = 46, L = 112, rad = a * Math.PI / 180;
+    el("path", { d: "M136 182 L184 182 L172 170 L148 170 Z", style: "fill:var(--beam)" }, s);
+    el("rect", { x: 156, y: 44, width: 8, height: 128, rx: 3, style: "fill:var(--beam)" }, s);
+    var lx = cx - L * Math.cos(rad), ly = cy - L * Math.sin(rad), rx = cx + L * Math.cos(rad), ry = cy + L * Math.sin(rad);
+    el("line", { x1: lx, y1: ly, x2: rx, y2: ry, style: "stroke:var(--beam);stroke-width:7;stroke-linecap:round" }, s);
+    el("circle", { cx: cx, cy: cy, r: 9, style: "fill:var(--beam)" }, s);
+    el("circle", { cx: cx, cy: cy, r: 3.5, style: "fill:var(--card)" }, s);
+    [[lx, ly, "p1", state.n1], [rx, ry, "p2", state.n2]].forEach(function (p) {
+      var x = p[0], y = p[1], py = y + 62;
+      el("line", { x1: x, y1: y, x2: x - 34, y2: py, style: "stroke:var(--beam);stroke-width:1.6" }, s);
+      el("line", { x1: x, y1: y, x2: x + 34, y2: py, style: "stroke:var(--beam);stroke-width:1.6" }, s);
+      el("path", { d: "M" + (x - 40) + " " + py + " Q" + x + " " + (py + 26) + " " + (x + 40) + " " + py + " Z", style: "fill:var(--" + p[2] + ")" }, s);
+      el("circle", { cx: x, cy: y, r: 4, style: "fill:var(--beam)" }, s);
+      var t = el("text", { x: x, y: py - 7, "text-anchor": "middle", style: "font-family:var(--display);font-weight:600;font-size:14px;fill:var(--ink)" }, s);
+      t.textContent = String(p[3] || "").slice(0, 12);
+    });
+  }
+  function kick() { if (!running) { running = true; requestAnimationFrame(loop); } }
+  function loop() { var mv = Math.abs(angTarget - angShown) > .05; angShown += mv ? (angTarget - angShown) * (reduce ? 1 : .07) : 0; if (!mv) angShown = angTarget; scaleDraw(angShown); if (mv) requestAnimationFrame(loop); else running = false; }
+
+  function whoChips(box, sel, onPick) { box.innerHTML = ""; [1, 2, 0].forEach(function (p) { var c = h("button", "chip", nm(p)); c.type = "button"; c.dataset.p = p;
+      c.setAttribute("aria-pressed", sel === p ? "true" : "false"); c.addEventListener("click", function () { onPick(p); }); box.appendChild(c); }); }
+  var exWho = 1, fixWho = 0;
+  function render() {
+    var ym = state.ym, R = calc(ym), done = !!state.done[ym];
+    $("mName").textContent = mname(ym);
+    var hasEx = state.ex.some(function (e) { return e.d.slice(0, 7) === ym; });
+    var big = $("vBig"), sm = $("vSmall"), st = $("settle");
+    if (!hasEx && !state.fix.length) { big.textContent = "Noch nichts eingetragen"; sm.textContent = "Tragt unter Ausgaben ein, wer was bezahlt hat."; st.hidden = true; angTarget = 0; }
+    else if (Math.abs(R.x) < .005 || done) { big.textContent = done ? "Ausgeglichen ✓" : "Alles ausgeglichen"; big.style.color = "var(--good)";
+      sm.textContent = done ? "Der Ausgleich für " + mname(ym) + " ist erledigt." : "Ihr habt genau fair geteilt."; st.hidden = !done; st.textContent = "Doch nicht erledigt"; st.className = "btn ghost"; angTarget = 0; }
+    else { var payer = R.x > 0 ? 2 : 1, get = 3 - payer; big.textContent = nm(payer) + " zahlt " + nm(get) + " " + eur(Math.abs(R.x)); big.style.color = "var(--p" + payer + ")";
+      sm.textContent = "Danach hat jeder genau seinen fairen Anteil getragen."; st.hidden = false; st.textContent = "Ausgleich erledigt"; st.className = "btn";
+      var span = Math.max(40, R.priv * .3); angTarget = Math.max(-16, Math.min(16, -R.x / span * 16)); }
+    kick();
+    $("aName").textContent = state.n1; $("bName").textContent = state.n2;
+    $("aPaid").textContent = eur(R.p1); $("bPaid").textContent = eur(R.p2);
+    $("aFair").textContent = "fair: " + eur(R.fair1) + " (" + Math.round(R.s1 * 100) + " %)"; $("bFair").textContent = "fair: " + eur(R.fair2) + " (" + (100 - Math.round(R.s1 * 100)) + " %)";
+    $("dA").textContent = "Dauerauftrag " + state.n1; $("dB").textContent = "Dauerauftrag " + state.n2;
+    $("dAv").textContent = eur(R.d1); $("dBv").textContent = eur(R.d2); $("kOut").textContent = eur(R.p0);
+    var kr = $("kRest"); kr.textContent = (R.rest >= 0 ? "+" : "") + eur(R.rest); kr.style.color = R.rest < 0 ? "var(--bad)" : "var(--good)";
+    $("sSub").textContent = "Gemeinsam im " + MN[+ym.slice(5) - 1] + ": " + eur(R.total, 0);
+    renderEx(); renderFix(); renderWir();
+  }
+  function renderEx() {
+    whoChips($("eWho"), exWho, function (p) { exWho = p; renderEx(); });
+    var sel = $("eC"); if (!sel.options.length) CATS.forEach(function (c) { var o = h("option", null, c); o.value = c; sel.appendChild(o); });
+    if (!$("eD").value) $("eD").value = isoOf(todayD());
+    $("exTitle").textContent = mname(state.ym);
+    var ul = $("exList"); ul.innerHTML = "";
+    var list = state.ex.map(function (e, i) { return [e, i]; }).filter(function (p) { return p[0].d.slice(0, 7) === state.ym; }).sort(function (a, b) { return a[0].d < b[0].d ? 1 : -1; });
+    if (!list.length) { ul.appendChild(h("li", "empty", "Keine Ausgaben in diesem Monat.")); return; }
+    list.forEach(function (p) { var e = p[0], li = h("li", e.x ? "priv" : ""), d = h("span", "dot p" + e.p, e.p === 0 ? "€" : (nm(e.p) || "?").charAt(0).toUpperCase());
+      var w = h("div", "what"); w.appendChild(h("span", null, e.n)); w.appendChild(h("small", null, fmt(parseIso(e.d), { day: "2-digit", month: "2-digit" }) + " · " + nm(e.p) + (e.x ? " · nicht geteilt" : "") + " · " + e.c));
+      var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", e.n + " löschen");
+      del.addEventListener("click", function () { state.ex.splice(p[1], 1); touch(); });
+      li.appendChild(d); li.appendChild(w); li.appendChild(h("span", "amt", eur(e.a))); li.appendChild(del); ul.appendChild(li); });
+  }
+  function renderFix() {
+    whoChips($("fWho"), fixWho, function (p) { fixWho = p; renderFix(); });
+    var ul = $("fixList"); ul.innerHTML = ""; var sum = 0, j = 0;
+    if (!state.fix.length) ul.appendChild(h("li", "empty", "Noch keine Fixkosten. Miete, Strom, Internet …"));
+    state.fix.forEach(function (f, i) { sum += f.a; if (f.p === 0) j += f.a;
+      var li = h("li"), d = h("span", "dot p" + f.p, f.p === 0 ? "€" : (nm(f.p) || "?").charAt(0).toUpperCase()), w = h("div", "what");
+      w.appendChild(h("span", null, f.n)); w.appendChild(h("small", null, f.p === 0 ? "vom Gemeinschaftskonto" : "zahlt " + nm(f.p)));
+      var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", f.n + " löschen"); del.addEventListener("click", function () { state.fix.splice(i, 1); touch(); });
+      li.appendChild(d); li.appendChild(w); li.appendChild(h("span", "amt", eur(f.a))); li.appendChild(del); ul.appendChild(li); });
+    $("fSum").textContent = eur(sum, 0); $("fJoint").textContent = eur(j, 0); $("fCnt").textContent = state.fix.length;
+  }
+  function renderWir() {
+    [["wN1", "n1"], ["wN2", "n2"], ["wI1", "i1"], ["wI2", "i2"], ["wOwn", "own"], ["wH", "house"]].forEach(function (p) { var e = $(p[0]); if (e !== document.activeElement) e.value = typeof state[p[1]] === "number" ? String(state[p[1]]).replace(".", ",") : state[p[1]]; });
+    var mb = $("wMode"); mb.innerHTML = ""; [["eink", "Nach Einkommen"], ["halb", "50 zu 50"], ["eigen", "Eigene Aufteilung"]].forEach(function (m) { var c = h("button", "chip", m[1]); c.type = "button";
+      c.setAttribute("aria-pressed", state.mode === m[0] ? "true" : "false"); c.addEventListener("click", function () { state.mode = m[0]; touch(); }); mb.appendChild(c); });
+    $("wOwnBox").hidden = state.mode !== "eigen";
+    var s1 = share1(); $("wRes").textContent = state.n1 + " trägt " + Math.round(s1 * 100) + " %, " + state.n2 + " " + (100 - Math.round(s1 * 100)) + " % der gemeinsamen Kosten." + (state.mode === "eink" ? " Wer mehr verdient, trägt mehr. So bleibt beiden anteilig gleich viel vom eigenen Geld." : "");
+  }
+  $("mPrev").addEventListener("click", function () { state.ym = shift(state.ym, -1); touch(); });
+  $("mNext").addEventListener("click", function () { state.ym = shift(state.ym, 1); touch(); });
+  $("settle").addEventListener("click", function () { var ym = state.ym; if (state.done[ym]) { delete state.done[ym]; touch(); return; }
+    state.done[ym] = true; touch(); confetti(["#2E4A62", "#E07A5F", "#ffffff", "#E9B44C"]); toast("Ausgleich für " + mname(ym) + " erledigt"); });
+  $("exForm").addEventListener("submit", function (e) { e.preventDefault(); var n = $("eN").value.trim(), a = num($("eA").value), d = $("eD").value;
+    if (!n) { $("eN").focus(); toast("Was habt ihr gekauft?"); return; } if (!(a > 0)) { $("eA").focus(); toast("Bitte einen Betrag eintragen."); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) d = isoOf(todayD());
+    state.ex.push({ d: d, n: n, a: Math.round(a * 100) / 100, p: exWho, c: $("eC").value, x: $("eP").checked }); state.ym = d.slice(0, 7);
+    $("eN").value = ""; $("eA").value = ""; $("eP").checked = false; touch(); toast(eur(a) + " eingetragen"); });
+  $("fixForm").addEventListener("submit", function (e) { e.preventDefault(); var n = $("fN").value.trim(), a = num($("fA").value);
+    if (!n) { $("fN").focus(); toast("Wofür?"); return; } if (!(a > 0)) { $("fA").focus(); toast("Bitte einen Betrag eintragen."); return; }
+    state.fix.push({ n: n, a: Math.round(a * 100) / 100, p: fixWho }); $("fN").value = ""; $("fA").value = ""; touch(); toast("Hinzugefügt"); });
+  [["wN1", "n1", 0], ["wN2", "n2", 0], ["wI1", "i1", 1], ["wI2", "i2", 1], ["wOwn", "own", 1], ["wH", "house", 1]].forEach(function (p) {
+    $(p[0]).addEventListener("change", function () { if (p[2]) { var v = num(this.value); state[p[1]] = v >= 0 ? Math.round(v * 100) / 100 : 0; }
+      else { var t = this.value.trim(); state[p[1]] = t || (p[1] === "n1" ? "Ich" : "Partner"); } touch(); }); });
+  $("wForm").addEventListener("submit", function (e) { e.preventDefault(); });
+  onShow.start = function () { angShown = 0; kick(); };
+
+
+  /* ---------- Laden, Sichern, Löschen (gemeinsam) ---------- */
+  try { var raw = localStorage.getItem(KEY); if (raw) { var s0 = JSON.parse(raw); if (s0 && s0.v === 1 && s0.app === APP) state = fix(s0); } } catch (e) {}
+  if (!state) state = example();
+  tabs.forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-tab")); }); });
+  document.querySelectorAll("[data-go]").forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-go")); }); });
+  document.querySelectorAll("[data-clear-example]").forEach(function (b) { b.addEventListener("click", function () { state = clearExample(state); state.example = false; touch(); toast("Beispiele gelöscht. Jetzt gehört die App euch."); }); });
+  $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
+  $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
+  $("resetYes").addEventListener("click", function () { state = blank(); touch(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
+  $("exportBtn").addEventListener("click", function () { THS.sichern(JSON.stringify(state, null, 1), toast); });
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
+    rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || s.app !== APP) throw 0; s.example = false; state = fix(s); touch(); toast("Sicherung geladen"); }
+      catch (err) { toast("Diese Datei ist keine Sicherung dieser App."); } e.target.value = ""; };
+    rd.readAsText(f); });
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
+  $("installBtn").addEventListener("click", function () { if (!deferred) return; deferred.prompt(); deferred = null; $("installBtn").hidden = true; });
+  function renderAll() { document.querySelectorAll("[data-ex]").forEach(function (x) { x.hidden = !state.example; }); }
+  var _render = render; render = function () { renderAll(); _render(); };
+  render();
+  var hash = (location.hash || "").slice(1); if (document.getElementById("v-" + hash)) go(hash, false);
+  if (typeof start === "function") start();
+  if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
+})();
+
+</script>
+</body>
+</html>
