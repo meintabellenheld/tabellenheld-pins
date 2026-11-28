@@ -603,7 +603,7 @@ input.auto, select.auto { border-color: var(--gold); background: var(--hint-bg);
     $("scanProg").classList.toggle("wait", !(p >= 0)); if (p >= 0) $("scanBar").style.width = Math.round(p * 100) + "%"; }
   var libs = null;
   function loadLibs() {
-    if (!libs) libs = Promise.all(["ocr/regeln.js", "ocr/scan.js"].map(function (src) { return new Promise(function (ok, no) { var sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }); }))
+    if (!libs) libs = Promise.all(["../ocr/regeln.js", "../ocr/scan.js"].map(function (src) { return new Promise(function (ok, no) { var sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }); }))
       .catch(function (e) { libs = null; throw e; });
     return libs;
   }

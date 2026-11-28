@@ -4,7 +4,8 @@
    die Datei des Kunden wird nirgendwohin geschickt. */
 (function () {
   "use strict";
-  var BASE = new URL("ocr/", document.baseURI).href;
+  /* Ordner dieses Skripts (gemeinsamer Ordner app/ocr/ für alle Apps) */
+  var BASE = new URL(".", (document.currentScript && document.currentScript.src) || new URL("../ocr/scan.js", document.baseURI).href).href;
   var MAX_SIDE_OCR = 2200, MAX_SIDE_SAVE = 1600, PDF_TEXT_PAGES = 6, PDF_OCR_PAGES = 3;
 
   function loadScript(src) {
@@ -105,10 +106,13 @@
   }
 
   function isPdf(file) { return /pdf/i.test(file.type) || /\.pdf$/i.test(file.name || ""); }
-  function read(file, progress) {
+  /* kind: "vertrag" (Abo-Tracker), "bon" (Kassenbon), "rechnung" (Rechnung oder Angebot) */
+  function read(file, progress, kind) {
     progress = progress || function () {};
     var p = isPdf(file) ? readPdf(file, progress) : readImage(file, progress);
-    return p.then(function (r) { r.fields = window.VertragRegeln.parse(r.text, new Date()); return r; });
+    return p.then(function (r) {
+      r.fields = kind === "bon" || kind === "rechnung" ? window.BonRegeln.parse(r.text, kind, new Date()) : window.VertragRegeln.parse(r.text, new Date());
+      return r; });
   }
-  window.VertragScan = { read: read, isPdf: isPdf };
+  window.VertragScan = window.THScan = { read: read, isPdf: isPdf, base: BASE };
 })();
