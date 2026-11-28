@@ -338,7 +338,7 @@ li.on .what span { color: var(--muted); text-decoration: line-through; }
   function blank() { return { v: 1, app: APP, example: false, ziel: "", ab: "", rueck: "", budget: 0, pers: 2, saved: 0, pack: basePack(), costs: [] }; }
   function example() { var s = blank(); s.example = true; s.ziel = "Kroatien, Istrien"; s.ab = "2027-07-10"; s.rueck = "2027-07-24"; s.budget = 3200; s.saved = 900;
     s.pack = basePack(["Personalausweis oder Reisepass", "Krankenversicherungskarte", "Buchungsbestätigungen", "T-Shirts", "Badesachen", "Sonnencreme", "Handy und Ladekabel", "Strandtuch"]);
-    s.costs = [{ n: "Ferienwohnung 14 Nächte", a: 1400 }, { n: "Benzin und Maut", a: 355 }, { n: "Supermarkt", a: 380 }, { n: "Essen gehen", a: 480 }, { n: "Ausflüge", a: 180 }, { n: "Reiserücktritt", a: 49 }, { n: "Puffer", a: 150 }]; return s; }
+    s.costs = [{ n: "Ferienwohnung 14 Nächte", a: 1400 }, { n: "Benzin und Maut", a: 355 }, { n: "Supermarkt", a: 380 }, { n: "Essen gehen", a: 480 }, { n: "Ausflüge", a: 180 }, { n: "Parken und Fähre", a: 70 }, { n: "Reiserücktritt", a: 49 }, { n: "Mitbringsel", a: 80 }, { n: "Puffer", a: 150 }]; return s; }
   function fix(s) { var b = blank(); for (var k in b) if (!(k in s)) s[k] = b[k]; ["pack", "costs"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); return s; }
   function clearExample(s) { return blank(); }
   function days() { var a = parseIso(state.ab); if (!a) return null; return Math.round((a - todayD()) / 864e5); }
