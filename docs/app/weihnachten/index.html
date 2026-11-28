@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Flocke Weihnachtsplaner</title>
 <meta name="description" content="Bonus-App zum Tabellenheld Weihnachtsplaner: Budget, Geschenke und Adventskalender mit Flocke. Alle Daten bleiben auf deinem Gerät.">
@@ -174,6 +175,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 #thsHinweis div { display: flex; gap: 8px; }
 #thsHinweis .btn { flex: 1; padding: 9px 12px; font-size: 15px; }
 </style>
+<script src="../ocr/docs.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -454,6 +456,18 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   function catOf(name) { if (name === "Essen") name = "Essen & Trinken"; return CATS.filter(function (k) { return k.k === name; })[0] || CATS[CATS.length - 1]; }
   var STATUS = ["geplant", "gekauft", "verpackt"];
   var KEY = "tabellenheld-frosty-v1";
+  /* Belege v1 */
+  /* Belege v1: Kassenbon abfotografieren -> Weihnachts-Ausgabe */
+  var DOCS = THDocs.store(KEY, function () { return state; }, function () { render(); });
+  var BON_CAT = { deko: "Deko", lebensmittel: "Essen & Trinken", gastro: "Essen & Trinken", kleidung: "Kleidung", tanken: "Fahrt & Reise", bahn: "Fahrt & Reise",
+    porto: "Karten & Porto", spielzeug: "Geschenke", elektronik: "Geschenke", freizeit: "Geschenke", drogerie: "Geschenke", wohnen: "Geschenke" };
+  var BOX = THDocs.box({ mount: document.getElementById("expForm"), store: DOCS, kind: "bon", label: "Kassenbon abfotografieren",
+    onResult: function (F) { var found = [];
+      if (F.betrag) { THDocs.mark($("expAmt"), F.betrag.v.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), F.betrag.q); found.push("Betrag"); }
+      if (F.laden) { THDocs.mark($("expWhat"), F.laden.v.slice(0, 60), F.laden.q); found.push("Laden"); }
+      var k = F.art && BON_CAT[F.art.v];
+      if (k && CATS.some(function (c) { return c.k === k; })) { cat = k; renderChips(); var ch = document.querySelector('#chips [aria-pressed="true"]'); if (ch) ch.classList.add("thd-auto"); $("chips").classList.add("thd-chips"); found.push("Bereich"); }
+      return found; } });
 
   function exampleState() {
     var y = new Date().getFullYear();
@@ -741,6 +755,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       var li = h("li"); var d = h("span", "dot", c.k.charAt(0).toUpperCase()); d.style.background = c.c; li.appendChild(d);
       var w = h("span", "what"); w.appendChild(h("span", null, x.w)); w.appendChild(h("small", null, x.c)); li.appendChild(w);
       li.appendChild(h("span", "amt", eur(+x.a)));
+      var _cp = THDocs.clip(DOCS, x, x.w, touch); if (_cp) li.appendChild(_cp);
       var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", "Ausgabe " + x.w + " löschen");
       del.addEventListener("click", function () { state.items.splice(idx, 1); touch(); toast("Ausgabe gelöscht"); }); li.appendChild(del); ul.appendChild(li); });
     $("expEmpty").hidden = state.items.length > 0;
@@ -785,7 +800,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   $("budget").addEventListener("blur", renderBudget);
   $("expForm").addEventListener("submit", function (e) { e.preventDefault(); var a = num($("expAmt").value);
     if (!(a > 0)) { $("expAmt").focus(); toast("Bitte einen Betrag eintragen."); return; }
-    state.items.push({ w: $("expWhat").value.trim() || cat, a: Math.round(a * 100) / 100, c: cat }); $("expWhat").value = ""; $("expAmt").value = ""; touch(); toast("Eingetragen: " + eur(a)); });
+    var _e = { w: $("expWhat").value.trim() || cat, a: Math.round(a * 100) / 100, c: cat }, _f = BOX.take(); if (_f) _e.f = _f; state.items.push(_e); $("expWhat").value = ""; $("expAmt").value = ""; touch(); toast("Eingetragen: " + eur(a)); });
   $("giftForm").addEventListener("submit", function (e) { e.preventDefault(); var who = $("gWho").value.trim();
     if (!who) { $("gWho").focus(); toast("Für wen ist das Geschenk?"); return; }
     var p = num($("gPrice").value); state.gifts.push({ n: who, g: $("gWhat").value.trim(), p: p > 0 ? Math.round(p * 100) / 100 : 0, s: 0 });
@@ -797,13 +812,13 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
-  $("resetYes").addEventListener("click", function () { state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: [], cats: [] }; save(); render();
+  $("resetYes").addEventListener("click", function () { DOCS.clear(); state = { v: 1, example: false, budget: 0, items: [], gifts: [], dates: [], opened: [], cats: [] }; save(); render();
     $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
 
-  $("exportBtn").addEventListener("click", function () { THS.sichern(JSON.stringify(state, null, 1), toast); });
+  $("exportBtn").addEventListener("click", function () { if (!DOCS.ready()) { toast("Moment, Belege werden vorbereitet."); return; } THS.sichern(JSON.stringify(DOCS.pack(state)), toast); });
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
-    rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || !Array.isArray(s.items)) throw 0;
+    rd.onload = function () { try { var s = JSON.parse(rd.result); if (s && s.docs) { DOCS.restore(s.docs); delete s.docs; } if (!s || s.v !== 1 || !Array.isArray(s.items)) throw 0;
       ["items", "gifts", "dates", "opened", "cats"].forEach(function (k) { if (!Array.isArray(s[k])) s[k] = []; }); s.example = false; state = s; save(); render(); toast("Sicherung geladen"); }
       catch (err) { toast("Diese Datei ist keine Flocke-Sicherung."); } e.target.value = ""; };
     rd.readAsText(f); });
@@ -837,6 +852,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   render(); shown = target; frosty(shown);
   var hash = (location.hash || "").slice(1); if (["start", "budget", "geschenke", "advent", "mehr"].indexOf(hash) >= 0) go(hash, false);
   loop();
+  THDocs.storeCard(DOCS, "Kassenbons liegen nur auf diesem Gerät und sind in „Daten sichern“ mit drin. Praktisch, falls ein Geschenk umgetauscht wird. Die Texterkennung läuft hier im Browser, beim ersten Mal lädt die App einmalig ca. 5 MB von unserer Seite. Deine Belege selbst werden nie hochgeladen."); DOCS.load();
   if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
 })();
 </script>

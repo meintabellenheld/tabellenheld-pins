@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Moni Haushaltsbuch</title>
 <meta name="description" content="Bonus-App zum Tabellenheld Haushaltsbuch: Einnahmen, Ausgaben, Budgets und Abo-Check mit Moni, dem Geldbaum. Alle Daten bleiben auf deinem Gerät.">
@@ -180,6 +181,7 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
 #thsHinweis div { display: flex; gap: 8px; }
 #thsHinweis .btn { flex: 1; padding: 9px 12px; font-size: 15px; }
 </style>
+<script src="../ocr/docs.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -456,6 +458,20 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
   var EXTRA = ["#e0703a", "#4a5fc1", "#9c3f2e", "#1f7a5c", "#c2559b", "#6b7d2a", "#3b8fc2", "#a0522d"];
   var NEED = ["brauche ich", "vielleicht", "brauche ich nicht"];
   var KEY = "tabellenheld-moni-v1";
+  /* Belege v1 */
+  /* Belege v1: Kassenbon abfotografieren -> Buchung */
+  var DOCS = THDocs.store(KEY, function () { return state; }, function () { render(); });
+  var BON_CAT = { lebensmittel: "Lebensmittel", drogerie: "Drogerie & Haushalt", wohnen: "Drogerie & Haushalt", baumarkt: "Drogerie & Haushalt", tanken: "Auto & Tanken",
+    bahn: "Bus & Bahn", kleidung: "Kleidung", gastro: "Freizeit & Ausgehen", freizeit: "Freizeit & Ausgehen", gesundheit: "Gesundheit", spielzeug: "Kinder" };
+  var BOX = THDocs.box({ mount: document.getElementById("entryForm"), store: DOCS, kind: "bon", label: "Kassenbon abfotografieren",
+    onResult: function (F) { var found = [];
+      var out = document.querySelector('#entryForm .seg [data-t="a"]'); if (out && out.getAttribute("aria-pressed") !== "true") out.click();
+      if (F.betrag) { THDocs.mark($("eAmt"), F.betrag.v.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), F.betrag.q); found.push("Betrag"); }
+      if (F.laden) { THDocs.mark($("eWhat"), F.laden.v.slice(0, 60), F.laden.q); found.push("Laden"); }
+      if (F.datum) { THDocs.mark($("eDate"), F.datum.v, F.datum.q); found.push("Datum"); }
+      var k = F.art && BON_CAT[F.art.v];
+      if (k && CATS.some(function (c) { return c.k === k; })) { cat = k; renderChips(); var ch = document.querySelector('#chips [aria-pressed="true"]'); if (ch) ch.classList.add("thd-auto"); $("chips").classList.add("thd-chips"); found.push("Kategorie"); }
+      return found; } });
 
   function exampleState() {
     var now = new Date(), y = now.getFullYear(), m = now.getMonth(), d = function (mm, dd) { var x = new Date(y, mm, dd); return iso(x); };
@@ -641,6 +657,7 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
       var c = catOf(e.c), li = h("li"); var d = h("span", "dot", c.k.charAt(0)); d.style.background = c.c; li.appendChild(d);
       var w = h("span", "what"); w.appendChild(h("span", null, e.w || e.c)); w.appendChild(h("small", null, e.c)); li.appendChild(w);
       li.appendChild(h("span", "amt" + (e.t === "e" ? " in" : ""), (e.t === "e" ? "+" : "−") + eur(+e.a)));
+      var _cp = THDocs.clip(DOCS, e, e.w || e.c, touch); if (_cp) li.appendChild(_cp);
       var del = h("button", "del", "✕"); del.type = "button"; del.setAttribute("aria-label", "Buchung " + (e.w || e.c) + " löschen");
       del.addEventListener("click", function () { state.entries.splice(idx, 1); touch(); toast("Buchung gelöscht"); }); li.appendChild(del); ul.appendChild(li); });
     $("entryEmpty").hidden = list.length > 0;
@@ -697,7 +714,7 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
   $("entryForm").addEventListener("submit", function (e) { e.preventDefault(); var a = num($("eAmt").value);
     if (!(a > 0)) { $("eAmt").focus(); toast("Bitte einen Betrag eintragen."); return; }
     var d = /^\d{4}-\d{2}-\d{2}$/.test($("eDate").value) ? $("eDate").value : iso(now);
-    state.entries.push({ d: d, t: typ, c: cat, w: $("eWhat").value.trim(), a: Math.round(a * 100) / 100 });
+    var _e = { d: d, t: typ, c: cat, w: $("eWhat").value.trim(), a: Math.round(a * 100) / 100 }, _f = BOX.take(); if (_f) _e.f = _f; state.entries.push(_e);
     var p = d.split("-"); cur.y = +p[0]; cur.m = +p[1] - 1;
     $("eAmt").value = ""; $("eWhat").value = ""; touch(); toast((typ === "e" ? "Einnahme " : "Ausgabe ") + eur(a) + " gebucht"); });
   $("aboForm").addEventListener("submit", function (e) { e.preventDefault(); var w = $("aWhat").value.trim(), a = num($("aAmt").value);
@@ -708,11 +725,11 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
     toast("Beispiele gelöscht. Buch jetzt dein Einkommen."); go("buchen"); document.querySelector('.seg button[data-t="e"]').click(); $("eAmt").focus(); });
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
-  $("resetYes").addEventListener("click", function () { state = norm({ v: 1, example: false, entries: [], budgets: {}, cats: [], abos: [] }); save(); render(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
-  $("exportBtn").addEventListener("click", function () { THS.sichern(JSON.stringify(state, null, 1), toast); });
+  $("resetYes").addEventListener("click", function () { DOCS.clear(); state = norm({ v: 1, example: false, entries: [], budgets: {}, cats: [], abos: [] }); save(); render(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
+  $("exportBtn").addEventListener("click", function () { if (!DOCS.ready()) { toast("Moment, Belege werden vorbereitet."); return; } THS.sichern(JSON.stringify(DOCS.pack(state)), toast); });
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
-    rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || !Array.isArray(s.entries)) throw 0; s.example = false; state = norm(s); save(); render(); toast("Sicherung geladen"); }
+    rd.onload = function () { try { var s = JSON.parse(rd.result); if (s && s.docs) { DOCS.restore(s.docs); delete s.docs; } if (!s || s.v !== 1 || !Array.isArray(s.entries)) throw 0; s.example = false; state = norm(s); save(); render(); toast("Sicherung geladen"); }
       catch (err) { toast("Diese Datei ist keine Moni-Sicherung."); } e.target.value = ""; }; rd.readAsText(f); });
   var deferred = null;
   window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
@@ -720,6 +737,7 @@ nav.tabs .plus { color: var(--pri-ink) !important; background: var(--pri) !impor
 
   render();
   var hash = (location.hash || "").slice(1); if (["start", "buchen", "budget", "abos", "mehr"].indexOf(hash) >= 0) go(hash);
+  THDocs.storeCard(DOCS, "Kassenbons und Rechnungen liegen nur auf diesem Gerät und sind in „Daten sichern“ mit drin. Praktisch für Umtausch und Garantie. Die Texterkennung läuft hier im Browser, beim ersten Mal lädt die App einmalig ca. 5 MB von unserer Seite. Deine Belege selbst werden nie hochgeladen."); DOCS.load();
   if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
 })();
 </script>

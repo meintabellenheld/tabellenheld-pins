@@ -1,7 +1,7 @@
 {
   "name": "Unser Hochzeitsplaner",
   "short_name": "Hochzeit",
-  "description": "Bonus-App zum Tabellenheld Hochzeitsplaner: Countdown, Budget, Gäste und Checkliste. Alle Daten bleiben auf eurem Gerät.",
+  "description": "Bonus-App zum Tabellenheld Hochzeitsplaner: Countdown, Budget mit Angebote-Scan, Gäste und Checkliste. Alle Daten bleiben auf eurem Gerät.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",

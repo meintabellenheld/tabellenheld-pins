@@ -2,9 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Unser Hochzeitsplaner</title>
-<meta name="description" content="Bonus-App zum Tabellenheld Hochzeitsplaner: Countdown, Budget, Gäste und Checkliste. Alle Daten bleiben auf eurem Gerät.">
+<meta name="description" content="Bonus-App zum Tabellenheld Hochzeitsplaner: Countdown, Budget mit Angebote-Scan, Gäste und Checkliste. Alle Daten bleiben auf eurem Gerät.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#FAF7F2">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -138,6 +139,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
 #thsHinweis div { display: flex; gap: 8px; }
 #thsHinweis .btn { flex: 1; padding: 9px 12px; font-size: 15px; }
 </style>
+<script src="../ocr/docs.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -395,6 +397,17 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   }
 
 
+  /* Belege v1 */
+  /* Belege v1: Angebot oder Rechnung hochladen -> Kostenposten */
+  var DOCS = THDocs.store(KEY, function () { return state; }, function () { render(); });
+  var HZ_CAT = { location: 0, essen: 1, foto: 2, outfit: 3, ringe: 4, musik: 5, blumen: 6, torte: 7, papeterie: 8, trauung: 9, reise: 10 };
+  var BOX = THDocs.box({ mount: document.getElementById("costForm"), store: DOCS, kind: "rechnung", label: "Angebot oder Rechnung hochladen",
+    note: "Foto oder PDF vom Angebot, Vertrag oder der Rechnung. Bleibt auf diesem Gerät: Die App liest es direkt hier im Browser, nichts wird hochgeladen.",
+    onResult: function (F) { var found = [];
+      if (F.betrag) { THDocs.mark($("cAmt"), F.betrag.v.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), F.betrag.q); found.push("Betrag"); }
+      if (F.laden) { THDocs.mark($("cWhat"), F.laden.v.slice(0, 50), F.laden.q); found.push("Anbieter"); }
+      if (F.hochzeit && HZ_CAT[F.hochzeit.v] != null) { THDocs.mark($("cCat"), String(HZ_CAT[F.hochzeit.v]), null); found.push("Bereich"); }
+      return found; } });
   var CATS = ["Location und Miete", "Essen und Getränke", "Fotografie und Video", "Outfits und Styling", "Ringe", "Musik und DJ",
               "Blumen und Deko", "Torte", "Papeterie und Einladungen", "Standesamt und Trauung", "Flitterwochen", "Sonstiges"];
   var GROUPS = [[12, "12 Monate vorher", ["Budget festlegen", "Gästeliste grob erstellen", "Wunschdatum und Plan B festlegen", "Location besichtigen und buchen", "Standesamt: Termin und Unterlagen klären"]], [9, "9 Monate vorher", ["Fotograf und Video buchen", "Musik oder DJ buchen", "Trauzeugen fragen", "Save-the-Date verschicken", "Catering auswählen"]], [6, "6 Monate vorher", ["Outfits aussuchen und bestellen", "Ringe aussuchen", "Hotelzimmer für Gäste reservieren", "Flitterwochen buchen", "Floristik anfragen"]], [4, "4 Monate vorher", ["Einladungen verschicken", "Torte probieren und bestellen", "Tagesablauf grob planen", "Deko planen"]], [2, "2 Monate vorher", ["Zusagen nachfassen", "Menü und Getränke festlegen", "Friseur und Make-up Probetermin", "Eheversprechen oder Reden vorbereiten"]], [1, "1 Monat vorher", ["Sitzplan erstellen", "Endgültige Gästezahl an Location melden", "Restzahlungen planen", "Ringe abholen"]], [0.25, "1 Woche vorher", ["Ablauf an alle Dienstleister schicken", "Notfall-Täschchen packen", "Bargeld für Trinkgelder bereitlegen"]], [-1, "Am Tag danach", ["Dankeskarten-Liste anlegen", "Geliehenes zurückgeben"]]], TASKS = [];
@@ -505,6 +518,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
       var b = h("button", "status " + ["s0", "s3", "s1"][c.s || 0], ["offen", "angezahlt", "bezahlt"][c.s || 0]); b.type = "button";
       b.setAttribute("aria-label", "Status von " + c.t + ": " + b.textContent + ". Tippen zum Ändern.");
       b.addEventListener("click", function () { c.s = ((c.s || 0) + 1) % 3; touch(); if (c.s === 2) toast(c.t + " bezahlt ✓"); }); li.appendChild(b);
+      var _cp = THDocs.clip(DOCS, c, c.t, touch); if (_cp) li.appendChild(_cp);
       var x = h("button", "del", "✕"); x.type = "button"; x.setAttribute("aria-label", c.t + " löschen"); x.addEventListener("click", function () { state.costs.splice(i, 1); touch(); }); li.appendChild(x);
       ul.appendChild(li); });
   }
@@ -558,7 +572,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   var sel = $("cCat"); CATS.forEach(function (c, i) { var o = h("option", null, c); o.value = i; sel.appendChild(o); });
   $("costForm").addEventListener("submit", function (e) { e.preventDefault(); var a = num($("cAmt").value);
     if (!(a > 0)) { $("cAmt").focus(); toast("Bitte einen Preis eintragen."); return; }
-    var c = +sel.value || 0; state.costs.push({ t: $("cWhat").value.trim() || CATS[c], c: c, a: Math.round(a * 100) / 100, s: 0 }); $("cWhat").value = ""; $("cAmt").value = ""; touch(); toast("Eingetragen: " + eur(a)); });
+    var c = +sel.value || 0; var _e = { t: $("cWhat").value.trim() || CATS[c], c: c, a: Math.round(a * 100) / 100, s: 0 }, _f = BOX.take(); if (_f) _e.f = _f; state.costs.push(_e); $("cWhat").value = ""; $("cAmt").value = ""; touch(); toast("Eingetragen: " + eur(a)); });
   $("guestForm").addEventListener("submit", function (e) { e.preventDefault(); var n = $("gName").value.trim();
     if (!n) { $("gName").focus(); toast("Bitte einen Namen eintragen."); return; }
     var p = parseInt($("gPers").value, 10); state.guests.push({ n: n, p: p > 0 && p < 100 ? p : 1, s: 0, t: 0 }); $("gName").value = ""; $("gPers").value = ""; touch(); toast(n + " eingetragen"); });
@@ -575,11 +589,11 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   document.querySelectorAll("[data-clear-example]").forEach(function (b) { b.addEventListener("click", function () { state = clearExample(state); state.example = false; touch(); toast("Beispiele gelöscht. Jetzt gehört die App euch."); }); });
   $("resetBtn").addEventListener("click", function () { $("resetConfirm").classList.add("on"); $("resetBtn").hidden = true; });
   $("resetNo").addEventListener("click", function () { $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; });
-  $("resetYes").addEventListener("click", function () { state = blank(); touch(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
-  $("exportBtn").addEventListener("click", function () { THS.sichern(JSON.stringify(state, null, 1), toast); });
+  $("resetYes").addEventListener("click", function () { DOCS.clear(); state = blank(); touch(); $("resetConfirm").classList.remove("on"); $("resetBtn").hidden = false; toast("Alles gelöscht."); });
+  $("exportBtn").addEventListener("click", function () { if (!DOCS.ready()) { toast("Moment, Belege werden vorbereitet."); return; } THS.sichern(JSON.stringify(DOCS.pack(state)), toast); });
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var rd = new FileReader();
-    rd.onload = function () { try { var s = JSON.parse(rd.result); if (!s || s.v !== 1 || s.app !== APP) throw 0; s.example = false; state = fix(s); touch(); toast("Sicherung geladen"); }
+    rd.onload = function () { try { var s = JSON.parse(rd.result); if (s && s.docs) { DOCS.restore(s.docs); delete s.docs; } if (!s || s.v !== 1 || s.app !== APP) throw 0; s.example = false; state = fix(s); touch(); toast("Sicherung geladen"); }
       catch (err) { toast("Diese Datei ist keine Sicherung dieser App."); } e.target.value = ""; };
     rd.readAsText(f); });
   var deferred = null;
@@ -590,6 +604,7 @@ canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
   render();
   var hash = (location.hash || "").slice(1); if (document.getElementById("v-" + hash)) go(hash, false);
   if (typeof start === "function") start();
+  THDocs.storeCard(DOCS, "Angebote, Verträge und Rechnungen liegen nur auf diesem Gerät und sind in „Daten sichern“ mit drin. Die Texterkennung läuft hier im Browser, beim ersten Mal lädt die App einmalig ca. 5 MB von unserer Seite. Eure Dokumente selbst werden nie hochgeladen."); DOCS.load();
   if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
 })();
 
