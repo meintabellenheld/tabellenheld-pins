@@ -1,5 +1,5 @@
 // Offline-Speicher für die Tabellenheld-App „Abo- und Fixkosten-Tracker 2027“. Nur eigene Dateien, keine Daten der Nutzer.
-const CACHE = "abo-v2";
+const CACHE = "abo-v3";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "fonts/fredoka.ttf", "fonts/inter-400.ttf", "fonts/inter-600.ttf"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

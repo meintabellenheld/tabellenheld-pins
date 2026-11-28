@@ -1,0 +1,9 @@
+Fremde Bausteine der Abo-Tracker-App (Ordner ocr/), alle kostenlos, Quelloffen, selbst gehostet (kein CDN):
+
+- pdf.js (pdfjs-dist 6.5.438, legacy build) – Mozilla – Apache License 2.0 – LICENSE_pdfjs.txt
+  wasm/: JBIG2 (PDFium, BSD-Stil + Apache 2.0), OpenJPEG (BSD-2), QCMS (MIT) – siehe wasm/LICENSE_*
+- Tesseract.js 7.0.0 – Apache License 2.0 – LICENSE_tesseractjs.txt
+- tesseract.js-core 7.0.0 (Tesseract OCR als WebAssembly) – Apache License 2.0 – core/LICENSE_tesseract-core.txt
+- Deutsches Sprachmodell deu.traineddata (tessdata_best, int) über @tesseract.js-data/deu 1.0.0 – Apache License 2.0 (Tesseract OCR Projekt)
+
+Bezogen am 28.11.2026 über npm, npm audit: 0 bekannte Sicherheitslücken. Prüfsummen: SHA256SUMS.txt im Generator-Ordner.
