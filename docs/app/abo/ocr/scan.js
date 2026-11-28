@@ -47,7 +47,7 @@
     return tesseract().then(function () {
       var share = 1 / canvases.length, done = 0;
       return window.Tesseract.createWorker("deu", 1, {
-        workerPath: BASE + "worker.min.js", corePath: BASE + "core", langPath: BASE + "lang",
+        workerPath: BASE + (window.TH_WORKER || "worker.min.js"),  /* TH_WORKER: nur für die Vorschau-Seite */ corePath: BASE + "core", langPath: BASE + "lang",
         workerBlobURL: false, cacheMethod: "none", gzip: true,
         logger: function (m) {
           if (m.status === "recognizing text") progress("Lese Text", done * share + m.progress * share);
